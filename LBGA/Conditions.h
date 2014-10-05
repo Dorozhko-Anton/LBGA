@@ -9,7 +9,7 @@
 typedef double LoadType;
 
 /**
-@breif Class contains math model parameters and initial solution
+@brief Class contains math model parameters and initial solution
 @detailed 
 //TODO: add detailed description mb with math model in tex
 */
@@ -55,28 +55,28 @@ private:
 	int timePeriod;
 
 	/**
-		@Breif the capacity of each server (Conditions#numberOfDisks)
+		@brief the capacity of each server (Conditions#numberOfDisks)
 		       for each resource (Conditions#numberOfCharacteristics)
 			   Using: [s][c]
 	*/
 	std::vector< std::vector<LoadType> > serverLoadLimits;
 
 	/**
-		@Breif each servers has limits of characteristics for inserting
+		@brief each servers has limits of characteristics for inserting
 			   disks
 			   Using: [s][c]
 	*/
 	std::vector< std::vector<LoadType> > insertionLimits;
 
 	/**
-		@Breif each servers has limits of characteristics for ejecting
+		@brief each servers has limits of characteristics for ejecting
 			   disks
 			   Using: [s][c]
 	*/
 	std::vector< std::vector<LoadType> > ejectionLimits;
 
 	/**
-		@Breif each disk has predicted load for every characteristic 
+		@brief each disk has predicted load for every characteristic 
 		       for each timepoint of timePeriod
 				
 			   Using: [d][c][t]
@@ -84,13 +84,14 @@ private:
 	std::vector< std::vector< std::vector<LoadType> > > diskLoad;
 
 	/**
-	@Breif each disk has predicted load for inserting it into server
+	@brief each disk has predicted load for inserting it into server
 
 	Using: [d][s][c]
 	*/
 	std::vector< std::vector< std::vector<LoadType> > > insertionCosts;
 	/**
-	@Breif each disk has predicted load for ejecting it from server
+	@brief each disk has predicted load for ejecting it from server
+
 
 	Using: [d][s][c]
 	*/
