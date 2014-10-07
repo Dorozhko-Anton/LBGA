@@ -4,13 +4,25 @@
 
 #include "Conditions.h"
 
+typedef double LoadType;
 
+class Condition;
 
 class Solution
 {
 public:
 	Solution();
+	Solution(const Condition* const _problemConditions, std::ifstream &ifs);
 	~Solution();
+
+	/**
+		check that constraints are not violated
+	*/
+	bool isFeasible() const;
+
+	void calculateEjectionAndInsertionExpenses();
+	void calculateOverLoad();
+
 
 
 
@@ -18,7 +30,7 @@ private:
 	/**
 		@brief problem conditions. see Condition
 	*/
-	const *Condition condition;
+	const Condition* condition;
 
 	/**
 		@brief solution is represented as vector of servers
