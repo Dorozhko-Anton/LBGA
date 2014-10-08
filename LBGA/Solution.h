@@ -4,7 +4,7 @@
 
 #include "Conditions.h"
 
-typedef double LoadType;
+//typedef double LoadType;
 
 class Condition;
 
@@ -22,6 +22,16 @@ public:
 
 	void calculateEjectionAndInsertionExpenses();
 	void calculateOverLoad();
+
+
+	static std::vector<Solution *> SequentialPopulationGeneration(int population_size);
+
+	Solution pathRelinking(Solution * other) const;
+
+	void assignmentLocalDescent();
+
+	void localSearch();
+
 
 
 
@@ -84,5 +94,6 @@ private:
 
 };
 
+const LoadType EPSILON = 10e-6;
 
 #endif // SOLUTION_H

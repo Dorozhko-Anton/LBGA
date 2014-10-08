@@ -4,9 +4,11 @@
 #include <vector>
 #include <fstream>
 
+typedef int LoadType;
+
 #include "Solution.h"
 
-typedef double LoadType;
+
 
 /**
 @brief Class contains math model parameters and initial solution
