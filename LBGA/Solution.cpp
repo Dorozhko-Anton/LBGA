@@ -24,6 +24,11 @@ Solution::Solution(const Condition* const _condition, std::ifstream &ifs)
 	calculateOverLoad();
 }
 
+Solution::Solution(const Solution* const other)
+{
+	// TODO: copy constructor
+}
+
 void Solution::calculateOverLoad()
 {
 	// TODO: implement calculateOverLoad
@@ -114,9 +119,37 @@ bool Solution::isFeasible() const
 	return true;
 }
 
-std::vector<Solution *> Solution::SequentialPopulationGeneration(int population_size)
+std::vector<Solution *> Solution::SequentialPopulationGeneration(const Condition* const condition, int population_size)
 {
-	return std::vector<Solution *>();
+	std::vector<Solution *> population(0);
+	population.push_back(new Solution(condition->getInitSolution()));
+
+	int delta = condition->getNumberOfDisks() * 10 / population_size;
+
+	while (population.size() < population_size)
+	{
+		Solution * new_solution = new Solution(condition->getInitSolution());
+
+		while (hammDistToPopulation(population, new_solution) < delta)
+		{
+			new_solution->randomMove();
+		}
+
+		population.push_back(new_solution);
+	}
+
+	return std::move(population);
+}
+
+int Solution::hammDistToPopulation(const Population population, const Solution * const solution)
+{
+	//TODO: impl
+	return 0;
+}
+
+void Solution::randomMove()
+{
+	//TODO: impl
 }
 
 Solution Solution::pathRelinking(Solution * other) const
