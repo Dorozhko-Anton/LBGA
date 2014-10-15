@@ -17,7 +17,6 @@ class Solution
 public:
 	Solution();
 	Solution(const Condition* const _problemConditions, std::ifstream &ifs);
-	Solution(const Solution* const other);
 
 	~Solution();
 
@@ -72,7 +71,7 @@ public:
 	/**
 		@brief computes hammdistance between two solutions
 	*/
-	int hammDist(const Solution * const other);
+	int hammDist(const Solution * const other) const;
 
 private:
 	/**

@@ -24,10 +24,7 @@ Solution::Solution(const Condition* const _condition, std::ifstream &ifs)
 	calculateOverLoad();
 }
 
-Solution::Solution(const Solution* const other)
-{
-	// TODO: copy constructor
-}
+
 
 void Solution::calculateOverLoad()
 {
@@ -122,13 +119,13 @@ bool Solution::isFeasible() const
 std::vector<Solution *> Solution::SequentialPopulationGeneration(const Condition* const condition, int population_size)
 {
 	std::vector<Solution *> population(0);
-	population.push_back(new Solution(condition->getInitSolution()));
+	population.push_back(new Solution(*condition->getInitSolution()));
 
 	int delta = condition->getNumberOfDisks() * 10 / population_size;
 
 	while (population.size() < population_size)
 	{
-		Solution * new_solution = new Solution(condition->getInitSolution());
+		Solution * new_solution = new Solution(*condition->getInitSolution());
 
 		while (hammDistToPopulation(population, new_solution) < delta)
 		{
