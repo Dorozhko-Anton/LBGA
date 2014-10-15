@@ -31,7 +31,7 @@ Solution::Solution(const Solution* const other)
 
 void Solution::calculateOverLoad()
 {
-	// TODO: implement calculateOverLoad
+	// implement calculateOverLoad
 	// calculate load for each server for each timestamp for each characteristic
 	// calculate overload
 	solutionOverLoad = 0;
@@ -79,7 +79,7 @@ void Solution::calculateOverLoad()
 
 void Solution::calculateEjectionAndInsertionExpenses()
 {
-	//TODO: calculateEjectionAndInsertionExpenses
+	//calculateEjectionAndInsertionExpenses
 	// calculate expenses relative to Condition#initialSolution
 	for (int i = 0; i < condition->getNumberOfServers(); i++) {
 		for (int j = 0; j < condition->getNumberOfCharacteristics(); j++) {
@@ -143,8 +143,27 @@ std::vector<Solution *> Solution::SequentialPopulationGeneration(const Condition
 
 int Solution::hammDistToPopulation(const Population population, const Solution * const solution)
 {
-	//TODO: impl
-	return 0;
+	int distance = 0;
+	for_each(population.begin(), population.end(), 
+		[&](const Solution * elem) {
+		  int currDist = solution->hammDist(elem);
+		  if (currDist > distance) distance = currDist;
+	    }
+	);
+	return distance;
+}
+
+int Solution::hammDist(const Solution * const other) const 
+{
+	int distance = 0;
+	for (int i = 0; i < solution.size(); i++)
+	{
+		if (solution[i] != other->solution[i])
+		{
+			distance++;
+		}
+	}
+	return distance;
 }
 
 void Solution::randomMove()
