@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <random>
 #include "Solution.h"
 
 Solution::Solution(const Condition* const _condition, std::ifstream &ifs) 
@@ -166,6 +167,65 @@ int Solution::hammDist(const Solution * const other) const
 void Solution::randomMove()
 {
 	//TODO: impl
+	std::uniform_int_distribution<> disk_dist(0, solution.size() - 1);
+	std::uniform_int_distribution<> server_dist(0, condition->getNumberOfServers() - 1);
+	
+	//dist(GlobalRND.getEngine());
+	int disk = disk_dist(std::default_random_engine());
+	int server = server_dist(std::default_random_engine());
+
+	if (canMove(disk, server)) {
+		move(disk, server);
+	}
+}
+
+bool Solution::canMove(int disk, int server) const {
+	return canEject(disk, solution[disk]) && canInsert(disk, server);
+}
+
+bool Solution::canEject(int diskToMove, int serverToEjectDisk) const  {
+
+	for (int c = 0; c < condition->getNumberOfCharacteristics(); c++) {
+		if ((currentEjectionCost[serverToEjectDisk][c]
+			+ condition->getEjectionCost(diskToMove, serverToEjectDisk, c))
+	> condition->getEjectionLimits(serverToEjectDisk, c))
+		{
+
+			return false;
+		}
+	}
+	return true;
+}
+
+bool Solution::canInsert(int diskToMove, int serverToInsertDisk) const {
+	// check if we can insert
+	// that means not exceed insertionCostLimits
+	if (diskToMove == -1) {
+		return true;
+	}
+
+	const Solution* initSolution = condition->getInitSolution();
+
+	if (initSolution->solution[diskToMove] == serverToInsertDisk) {
+		return true;
+	}
+
+
+	for (int c = 0; c < condition->getNumberOfCharacteristics(); c++) {
+		if ((currentInsertionCost[serverToInsertDisk][c]
+			+ condition->getInsertionCost(diskToMove, serverToInsertDisk, c))
+	> condition->getInsertionLimits(serverToInsertDisk, c)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+
+void Solution::move(int disk, int server) {
+	solution[disk] = server;
+	this->calculateEjectionAndInsertionExpenses();
+	this->calculateOverLoad();
 }
 
 Solution Solution::pathRelinking(Solution * other) const

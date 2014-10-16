@@ -60,7 +60,38 @@ public:
 
 	void localSearch();
 
+	/**
+		chose disk uniformely
+		chose server uniformely
+		check constraints of moving
+		move disk to server
+	*/
 	void randomMove();
+
+	/**
+		check constraints after move:
+		1. canEjectDiskFromServer
+		2. canInsertDiskToServer
+
+		but without actually moving disk
+	*/
+	bool canMove(int disk, int server) const;
+
+	/**
+		check ejecting constraints of move
+	*/
+	bool canEjectDiskFromServer(int diskToMove, int serverToEjectDisk) const;
+	/**
+	    check inserting constraints of move
+	*/
+	bool canInsertDiskToServer(int diskToMove, int serverToInsertDisk) const;
+	/**
+		perform moving disk to new server
+
+		update constraints
+		update overload
+	*/
+	void move(int disk, int server);
 
 	/**
 		@brief counts hammDist from 1 solution to set of solutions called population
