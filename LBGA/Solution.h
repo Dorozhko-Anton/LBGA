@@ -15,10 +15,14 @@ typedef std::vector<Solution *> Population;
 class Solution
 {
 public:
-	Solution();
+	Solution(){
+
+	}
 	Solution(const Condition* const _problemConditions, std::ifstream &ifs);
 
-	~Solution();
+	~Solution(){
+
+	}
 
 	/**
 		check that constraints are not violated
@@ -80,11 +84,11 @@ public:
 	/**
 		check ejecting constraints of move
 	*/
-	bool canEjectDiskFromServer(int diskToMove, int serverToEjectDisk) const;
+	bool canEject(int diskToMove, int serverToEjectDisk) const;
 	/**
 	    check inserting constraints of move
 	*/
-	bool canInsertDiskToServer(int diskToMove, int serverToInsertDisk) const;
+	bool canInsert(int diskToMove, int serverToInsertDisk) const;
 	/**
 		perform moving disk to new server
 
@@ -103,6 +107,13 @@ public:
 		@brief computes hammdistance between two solutions
 	*/
 	int hammDist(const Solution * const other) const;
+
+	/**
+	getter for objective function
+	*/
+	LoadType getOverLoad() const {
+		return solutionOverLoad;
+	}
 
 private:
 	/**
