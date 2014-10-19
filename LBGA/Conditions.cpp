@@ -1,6 +1,7 @@
 #include "Conditions.h"
 
 #include <fstream>
+#include <iostream>
 
 Condition::Condition(std::ifstream &inputFile) {
 

@@ -1,20 +1,22 @@
 #include <iostream>
 #include "GeneticAlgotithmTemplate.h"
+#include "Conditions.h"
 #include "Solution.h"
 
-template <typename T>
-class BreedingStrategy {
-public:
-	std::vector<T> generateInitialPopulation() {
-		return std::vector<T>(0);
-	}
-};
+
 
 void main() 
 {
 	using namespace ice;
-	GeneticAlgorithm<Solution, ice::Population<Solution>, BreedingStrategy<Solution>> ga;
+
+	std::ifstream dataFile("data_700_150.txt");
+
+	Condition cond(dataFile);
+	ice::BreedingStrategy<Solution> bstrategy(&cond);
+
+	GeneticAlgorithm<Solution, ice::Population, ice::BreedingStrategy>
+		ga(&cond, bstrategy);
 
 	ga.start();
-	std::cout << ga.getResult().getOverLoad() << std::endl;
+	std::cout << ga.getResult()->getOverLoad() << std::endl;
 }

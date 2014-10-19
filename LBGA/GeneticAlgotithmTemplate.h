@@ -3,34 +3,47 @@
 #pragma once
 
 #include <vector>
+#include "Conditions.h"
 
 namespace ice {
-	template <typename T>
+	template <class T>
 	class Population {
 	public:
-		T getBest() const {
+		T* getBest() const {
 			return population[0];
 		}
-		std::vector<T> getCreaturesForCrossover();
-		T getCreatureForMutation();
+		std::vector<T*> getCreaturesForCrossover();
+		T* getCreatureForMutation();
 
-
+		Population(std::vector<T*> _population) : population(_population){}
 	private:
-		std::vector<T> population;
+		std::vector<T*> population;
 	};
 
+	template <class T>
+	class BreedingStrategy {
+	public:
+		std::vector<T*> generateInitialPopulation(int size) {
+			return Solution::SequentialPopulationGeneration(conditions, size);
+		};
+		BreedingStrategy(const Condition* _conditions) {
+			conditions = _conditions;
+		};
+	private:
+		const Condition* conditions;
+	};
 }
 
 
 template <
-	typename T,
-	typename Population,
-	typename InitialPopulationGenerator
+	class T,
+	template<typename T> class Population,
+	template<typename T> class InitialPopulationGenerator
 >
 class GeneticAlgorithm  {
 public:
 	void start() {
-		IPGSstrategy.generateInitialPopulation();
+		population = new Population<T>(IPGSstrategy.generateInitialPopulation(populationSize));
 
 		/*while (!stopCriteria()) {
 			crossover();
@@ -39,18 +52,26 @@ public:
 
 	}
 
-	T getResult() const
+	T* getResult() const
 	{
-		return population.getBest();
+		return population->getBest();
+	}
+
+	GeneticAlgorithm(const Condition* const conditions,
+		InitialPopulationGenerator<T> _generator
+		) :
+		IPGSstrategy(_generator) 
+	{
 	}
 
 private:
-	InitialPopulationGenerator IPGSstrategy;
+	InitialPopulationGenerator<T> IPGSstrategy;
 	/*StopCriteriaStrategy<T> stopCriteria;
 	CrossoverStrategy<T> crossoverStrategy;
 	LocalSearchStrategy<T> LSstrategy;
 */
-	Population population;
+	Population<T>* population;
+	int populationSize = 50;
 };
 
 #endif //  GAT_H

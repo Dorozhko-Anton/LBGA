@@ -4,7 +4,7 @@
 #include <vector>
 #include <fstream>
 
-typedef int LoadType;
+typedef double LoadType;
 
 #include "Solution.h"
 

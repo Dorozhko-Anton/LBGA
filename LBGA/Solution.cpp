@@ -21,7 +21,7 @@ Solution::Solution(const Condition* const _condition, std::ifstream &ifs)
 	this->currentInsertionCost.resize(condition->getNumberOfServers(),
 		std::vector< LoadType >(condition->getNumberOfCharacteristics(), 0));
 
-	calculateEjectionAndInsertionExpenses();
+	//calculateEjectionAndInsertionExpenses();
 	calculateOverLoad();
 }
 
