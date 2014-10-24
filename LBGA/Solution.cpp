@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <random>
 #include "Solution.h"
+#include "RandomNumberGenerator.h"
 
 Solution::Solution(const Condition* const _condition, std::ifstream &ifs) 
 {
@@ -141,11 +142,15 @@ std::vector<Solution *> Solution::SequentialPopulationGeneration(const Condition
 
 int Solution::hammDistToPopulation(const Population population, const Solution * const solution)
 {
-	int distance = 0;
+	// fix distance init with max dist + 1
+	int distance = solution->condition->getNumberOfDisks() + 1;
+
 	for_each(population.begin(), population.end(), 
 		[&](const Solution * elem) {
 		  int currDist = solution->hammDist(elem);
-		  if (currDist > distance) distance = currDist;
+		  // fix distance equals min distance between solution 
+		  // and every other solution in population
+		  if (currDist < distance) distance = currDist;
 	    }
 	);
 	return distance;
@@ -171,8 +176,8 @@ void Solution::randomMove()
 	std::uniform_int_distribution<> server_dist(0, condition->getNumberOfServers() - 1);
 	
 	//dist(GlobalRND.getEngine());
-	int disk = disk_dist(std::default_random_engine());
-	int server = server_dist(std::default_random_engine());
+	int disk = disk_dist(GlobalRNG::getInstance().getEngine());
+	int server = server_dist(GlobalRNG::getInstance().getEngine());
 
 	if (canMove(disk, server)) {
 		move(disk, server);
