@@ -14,7 +14,7 @@ void main()
 	Condition cond(dataFile);
 	ice::BreedingStrategy<Solution> bstrategy(&cond);
 
-	GeneticAlgorithm<Solution, ice::Population, ice::BreedingStrategy>
+	GeneticAlgorithm<Solution, ice::Population, ice::BreedingStrategy, ice::FastRandomGreedyStrategy>
 		ga(&cond, bstrategy);
 
 	ga.start();

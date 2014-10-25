@@ -80,6 +80,8 @@ public:
 	void FastRandomizedGreedyOptimization(int numberOfDisks);
 
 	std::vector<int> getServersByOverLoad() const;
+	std::vector<int> chooseRandomDisksFromServer(int amount, int server) const;
+	LoadType tryMove(int disk, int server) const;
 
 	/**
 		chose disk uniformely

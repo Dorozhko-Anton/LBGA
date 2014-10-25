@@ -124,7 +124,7 @@ std::vector<Solution *> Solution::SequentialPopulationGeneration(const Condition
 	std::vector<Solution *> population(0);
 	population.push_back(new Solution(*condition->getInitSolution()));
 
-	int delta = condition->getNumberOfDisks() * 10 / population_size;
+	int delta = std::min(population_size, condition->getNumberOfDisks() / 10);
 
 	while (population.size() < population_size)
 	{
@@ -253,10 +253,11 @@ void Solution::FastRandomizedGreedyOptimization(int numberOfRandomDisks /*= 0*/)
 {
 	bool moveDone = false;
 
-	std::vector<int> serversByOverload = getServersByOverLoad();
+	
 
 	do
 	{
+		std::vector<int> serversByOverload = getServersByOverLoad();
 		int mostOverloadedServer = serversByOverload[0];
 
 		std::vector<int> disks = chooseRandomDisksFromServer(numberOfRandomDisks, mostOverloadedServer);
@@ -267,10 +268,10 @@ void Solution::FastRandomizedGreedyOptimization(int numberOfRandomDisks /*= 0*/)
 		{
 			for (int s = serversByOverload.size() - 1; s >= serversByOverload.size() / 2; s--)
 			{
-				LoadType overLoadDecrease = tryMove(*disk, s);
+				LoadType overLoadDecrease = tryMove(*disk, serversByOverload[s]);
 				if (overLoadDecrease > maxWin) {
 					diskToMove = *disk;
-					serverForDisk = s;
+					serverForDisk = serversByOverload[s];
 					maxWin = overLoadDecrease;
 				}
 			}
@@ -285,14 +286,14 @@ void Solution::FastRandomizedGreedyOptimization(int numberOfRandomDisks /*= 0*/)
 }
 
 std::vector<int> Solution::getServersByOverLoad() const {
-	std::vector<int> result(condition->getNumberOfDisks());
+	std::vector<int> result(condition->getNumberOfServers());
 	// init by range 0..numberOfDisks - 1
 	std::iota(result.begin(), result.end(), 0);
 
 	// sort by descending order
 	std::sort(result.begin(), result.end(), 
-		&[this](int i, int j) {
-			return serversOverLoads[i] > serversOverLoads[j];
+		[this](int i, int j) {
+		return (serversOverLoads[i] - serversOverLoads[j]) > 0;
 		}
 	);
 	return std::move(result);
@@ -309,15 +310,17 @@ std::vector<int> Solution::chooseRandomDisksFromServer(int amount, int server) c
 		}
 	}
 
-	// random shuffle disk numbers
-	std::uniform_int_distribution<int> dist(0, allDisks.size());
 
-	std::random_shuffle(allDisks.begin(), allDisks.end(),
-		dist(GlobalRNG::getInstance().getEngine()));
+	if (allDisks.size() <= amount) {
+		return std::move(allDisks);
+	}
+	
+	// random shuffle disk numbers
+	std::shuffle(allDisks.begin(), allDisks.end(), GlobalRNG::getInstance().getEngine());
 
 	// get first #amount of disks
 	std::vector<int> disks(allDisks.cbegin(), allDisks.cbegin() + amount);
-	std::move(disks);
+	return std::move(disks);
 }
 
 LoadType Solution::tryMove(int disk, int server) const {
@@ -336,7 +339,7 @@ LoadType Solution::tryMove(int disk, int server) const {
 				result += std::max((LoadType)0, serversLoads[server][c][t] - condition->getDiskLoad(disk, c, t) - condition->getServerLoadLimits(server, c));
 			}
 		}
-
+		// was - become
 		return (serversOverLoads[serverWas] + serversOverLoads[server]) - result;
 	}
 	
