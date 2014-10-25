@@ -65,6 +65,23 @@ public:
 	void localSearch();
 
 	/**
+		@brief simple move local search
+
+		@detailed 
+		while (move performed) do
+			1) from MOST overloaded servers pick one
+			2) choose @numberOfDisks random disks from it
+			3) list moves that move disks to non-overloaded servers
+				that decrease overload
+			4) choose best
+		end
+
+	*/
+	void FastRandomizedGreedyOptimization(int numberOfDisks);
+
+	std::vector<int> getServersByOverLoad() const;
+
+	/**
 		chose disk uniformely
 		chose server uniformely
 		check constraints of moving

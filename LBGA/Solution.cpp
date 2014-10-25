@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <random>
+#include <numeric> // iota
 #include "Solution.h"
 #include "RandomNumberGenerator.h"
 
@@ -245,5 +246,100 @@ void Solution::assignmentLocalDescent()
 
 void Solution::localSearch()
 {
+
+}
+
+void Solution::FastRandomizedGreedyOptimization(int numberOfRandomDisks /*= 0*/)
+{
+	bool moveDone = false;
+
+	std::vector<int> serversByOverload = getServersByOverLoad();
+
+	do
+	{
+		int mostOverloadedServer = serversByOverload[0];
+
+		std::vector<int> disks = chooseRandomDisksFromServer(numberOfRandomDisks, mostOverloadedServer);
+
+		LoadType maxWin = 0;
+		int diskToMove = 0, serverForDisk = 0;
+		for (std::vector<int>::iterator disk = disks.begin(); disk != disks.end(); disk++)
+		{
+			for (int s = serversByOverload.size() - 1; s >= serversByOverload.size() / 2; s--)
+			{
+				LoadType overLoadDecrease = tryMove(*disk, s);
+				if (overLoadDecrease > maxWin) {
+					diskToMove = *disk;
+					serverForDisk = s;
+					maxWin = overLoadDecrease;
+				}
+			}
+		}
+		
+		if (maxWin > 0) {
+			moveDone = true;
+			move(diskToMove, serverForDisk);
+		}
+
+	} while (moveDone);
+}
+
+std::vector<int> Solution::getServersByOverLoad() const {
+	std::vector<int> result(condition->getNumberOfDisks());
+	// init by range 0..numberOfDisks - 1
+	std::iota(result.begin(), result.end(), 0);
+
+	// sort by descending order
+	std::sort(result.begin(), result.end(), 
+		&[this](int i, int j) {
+			return serversOverLoads[i] > serversOverLoads[j];
+		}
+	);
+	return std::move(result);
+}
+
+std::vector<int> Solution::chooseRandomDisksFromServer(int amount, int server) const {
+	
+
+	std::vector<int> allDisks;
+	// write out all disks that belong to server
+	for (int i = 0; i < condition->getNumberOfDisks(); i++) {
+		if (solution[i] == server) {
+			allDisks.push_back(i);
+		}
+	}
+
+	// random shuffle disk numbers
+	std::uniform_int_distribution<int> dist(0, allDisks.size());
+
+	std::random_shuffle(allDisks.begin(), allDisks.end(),
+		dist(GlobalRNG::getInstance().getEngine()));
+
+	// get first #amount of disks
+	std::vector<int> disks(allDisks.cbegin(), allDisks.cbegin() + amount);
+	std::move(disks);
+}
+
+LoadType Solution::tryMove(int disk, int server) const {
+	
+	// check constraints
+	if (canMove(disk, server)) {
+		int serverWas = solution[disk];
+		// recalculate overLoad for two servers
+		// for server to eject disk from - without that disk
+		// for server to insert disk to - with that disk
+		LoadType result = 0;
+
+		for (int c = 0; c < condition->getNumberOfCharacteristics(); c++) {
+			for (int t = 0; t < condition->getTimePeriod(); t++) {
+				result += std::max((LoadType)0, serversLoads[serverWas][c][t] - condition->getDiskLoad(disk, c, t) - condition->getServerLoadLimits(serverWas, c));
+				result += std::max((LoadType)0, serversLoads[server][c][t] - condition->getDiskLoad(disk, c, t) - condition->getServerLoadLimits(server, c));
+			}
+		}
+
+		return (serversOverLoads[serverWas] + serversOverLoads[server]) - result;
+	}
+	
+	return -1 * std::numeric_limits<LoadType>::infinity();
 
 }
