@@ -251,12 +251,14 @@ void Solution::localSearch()
 
 void Solution::FastRandomizedGreedyOptimization(int numberOfRandomDisks /*= 0*/)
 {
-	bool moveDone = false;
+	
 
 	
+	bool moveDone = false;
 
 	do
 	{
+		
 		std::vector<int> serversByOverload = getServersByOverLoad();
 		int mostOverloadedServer = serversByOverload[0];
 
@@ -280,6 +282,9 @@ void Solution::FastRandomizedGreedyOptimization(int numberOfRandomDisks /*= 0*/)
 		if (maxWin > 0) {
 			moveDone = true;
 			move(diskToMove, serverForDisk);
+		}
+		else {
+			moveDone = false;
 		}
 
 	} while (moveDone);
@@ -336,7 +341,7 @@ LoadType Solution::tryMove(int disk, int server) const {
 		for (int c = 0; c < condition->getNumberOfCharacteristics(); c++) {
 			for (int t = 0; t < condition->getTimePeriod(); t++) {
 				result += std::max((LoadType)0, serversLoads[serverWas][c][t] - condition->getDiskLoad(disk, c, t) - condition->getServerLoadLimits(serverWas, c));
-				result += std::max((LoadType)0, serversLoads[server][c][t] - condition->getDiskLoad(disk, c, t) - condition->getServerLoadLimits(server, c));
+				result += std::max((LoadType)0, serversLoads[server][c][t] + condition->getDiskLoad(disk, c, t) - condition->getServerLoadLimits(server, c));
 			}
 		}
 		// was - become

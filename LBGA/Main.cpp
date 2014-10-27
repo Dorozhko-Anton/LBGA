@@ -13,9 +13,15 @@ void main()
 
 	Condition cond(dataFile);
 	ice::BreedingStrategy<Solution> bstrategy(&cond);
+	ice::IterationNumberStopStrategy<Solution> sstrategy(10);
 
-	GeneticAlgorithm<Solution, ice::Population, ice::BreedingStrategy, ice::FastRandomGreedyStrategy>
-		ga(&cond, bstrategy);
+	GeneticAlgorithm
+		<Solution, 
+		 ice::Population, 
+		 ice::BreedingStrategy, 
+		 ice::FastRandomGreedyStrategy,
+		 ice::IterationNumberStopStrategy>
+		 ga(&cond, bstrategy, sstrategy);
 
 	ga.start();
 	std::cout << ga.getResult()->getOverLoad() << std::endl;
