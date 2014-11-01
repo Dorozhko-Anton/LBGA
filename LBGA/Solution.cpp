@@ -186,6 +186,7 @@ void Solution::randomMove()
 }
 
 bool Solution::canMove(int disk, int server) const {
+	// TODO: BUG wrong if ejection and insertion are treated as one capacity
 	return canEject(disk, solution[disk]) && canInsert(disk, server);
 }
 
@@ -234,6 +235,48 @@ void Solution::move(int disk, int server) {
 	this->calculateOverLoad();
 }
 
+void Solution::swap(int d1, int d2) {
+	std::swap(solution[d1], solution[d2]);
+	this->calculateEjectionAndInsertionExpenses();
+	this->calculateOverLoad();
+}
+
+void Solution::SwapOptimization() {
+
+	bool moveDone;
+
+	do {
+		moveDone = false;
+
+		std::vector<int> serversByOverLoad = getServersByOverLoad();
+
+		int moreOverloadedServer = serversByOverLoad[0];
+		int lessOverloadedServer = serversByOverLoad[serversByOverLoad.size() - 1];
+
+		std::vector<int> disks1 = chooseRandomDisksFromServer(condition->getNumberOfDisks(), moreOverloadedServer);
+		std::vector<int> disks2 = chooseRandomDisksFromServer(condition->getNumberOfDisks(), lessOverloadedServer);
+
+
+		LoadType maxWin = 0;
+		int disk1, disk2;
+
+		for (int i = 0; i < disks1.size(); i++) {
+			for (int j = 0; j < disks2.size(); j++) {
+				if (trySwap(disks1[i], disks2[j]) > maxWin) {
+					disk1 = disks1[i];
+					disk2 = disks2[j];
+				}
+			}
+		}
+		if (maxWin > 0) {
+			swap(disk1, disk2);
+			moveDone = true;
+		}
+	} while (moveDone);
+}
+
+
+
 Solution Solution::pathRelinking(Solution * other) const
 {
 	return *this;
@@ -251,11 +294,7 @@ void Solution::localSearch()
 
 void Solution::FastRandomizedGreedyOptimization(int numberOfRandomDisks /*= 0*/)
 {
-	
-
-	
 	bool moveDone = false;
-
 	do
 	{
 		
@@ -350,4 +389,66 @@ LoadType Solution::tryMove(int disk, int server) const {
 	
 	return -1 * std::numeric_limits<LoadType>::infinity();
 
+}
+
+LoadType Solution::trySwap(int d1, int d2) const {
+	// check constraints
+	if (canSwap(d1, d2)) {
+		int s1 = solution[d1];
+		int s2 = solution[d2];
+		// recalculate overLoad for two servers
+		// for server to eject disk from - without that disk
+		// for server to insert disk to - with that disk
+		LoadType result = 0;
+
+		for (int c = 0; c < condition->getNumberOfCharacteristics(); c++) {
+			for (int t = 0; t < condition->getTimePeriod(); t++) {
+				result += std::max((LoadType)0, 
+					serversLoads[s1][c][t] 
+					- condition->getDiskLoad(d1, c, t) 
+					+ condition->getDiskLoad(d2, c, t) 
+					- condition->getServerLoadLimits(s1, c));
+
+				result += std::max((LoadType)0, 
+					serversLoads[s2][c][t] 
+					+ condition->getDiskLoad(d1, c, t) 
+					- condition->getDiskLoad(d2, c, t)
+					- condition->getServerLoadLimits(s2, c));
+			}
+		}
+		// was - become
+		return (serversOverLoads[s1] + serversOverLoads[s2]) - result;
+	}
+
+	return -1 * std::numeric_limits<LoadType>::infinity();
+}
+
+bool Solution::canSwap(int d1, int d2) const {
+
+	int s1 = solution[s1];
+	int s2 = solution[s2];
+
+	bool canEjectD1 = true, canEjectD2 = true;
+	bool canInsertD1 = true, canInsertD2 = true;
+
+	for (int c = 0; c < condition->getNumberOfCharacteristics(); c++) {
+		
+		if (s2 != condition->getInitSolution()->solution[d1]) {
+			canEjectD1 = canEjectD1 && (currentEjectionCost[s1][c]
+				+ condition->getEjectionCost(d1, s1, c) < condition->getEjectionLimits(s1, c));
+
+			canInsertD1 = canInsertD1 &&
+				(currentInsertionCost[s1][c] + condition->getInsertionCost(d2, s1, c) < condition->getInsertionLimits(s1, c));
+		}
+
+		if (s1 != condition->getInitSolution()->solution[d2]) {
+			canEjectD2 = canEjectD2 && (currentEjectionCost[s2][c]
+				+ condition->getEjectionCost(d2, s2, c) < condition->getEjectionLimits(s2, c));
+
+			canInsertD2 = canInsertD2 &&
+				(currentInsertionCost[s2][c] + condition->getInsertionCost(d1, s2, c) < condition->getInsertionLimits(s2, c));
+		}
+	}
+	
+	return canEjectD1 && canEjectD2 && canInsertD1 && canInsertD2;
 }

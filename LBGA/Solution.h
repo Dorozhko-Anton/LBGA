@@ -78,6 +78,23 @@ public:
 
 	*/
 	void FastRandomizedGreedyOptimization(int numberOfDisks);
+	
+	/**
+		swap neighbourhood
+		1. choose most overloaded server
+		2. choose least overloaded server
+		3. trySwap() all pairs and choose, pair that lowers the overload better
+	*/
+	void SwapOptimization();
+
+	/**
+		swap OPt helper functions
+	*/
+	void swap(int d1, int d2);
+	LoadType trySwap(int d1, int d2) const;
+	bool canSwap(int d1, int d2) const;
+
+
 
 	std::vector<int> getServersByOverLoad() const;
 	std::vector<int> chooseRandomDisksFromServer(int amount, int server) const;

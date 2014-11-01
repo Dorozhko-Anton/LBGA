@@ -9,7 +9,8 @@ void main()
 {
 	using namespace ice;
 
-	std::ifstream dataFile("data_700_150.txt");
+	//std::ifstream dataFile("data_700_150.txt");
+	std::ifstream dataFile("inst1.txt");
 
 	Condition cond(dataFile);
 	ice::BreedingStrategy<Solution> bstrategy(&cond);

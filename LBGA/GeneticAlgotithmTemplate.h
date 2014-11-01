@@ -98,11 +98,16 @@ template <
 class GeneticAlgorithm {
 public:
 	void start() {
+		// generate start population
 		population = new Population<T>(IPGSstrategy.generateInitialPopulation(populationSize));
-
+		// apply localSearch to population
 		population->apply(LSstrategy);
 		
 		while (!_StopStrategy.stopCriteria()) {
+			
+			// chose solutions from population to crossover
+			//Population<T> parents = population->chooseForCrossover();
+			//parents->crossover();
 			//crossover();
 			//localSearch();
 			population->apply(LSstrategy);
