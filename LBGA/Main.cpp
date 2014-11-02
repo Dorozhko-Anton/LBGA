@@ -21,7 +21,9 @@ void main()
 		 ice::Population, 
 		 ice::BreedingStrategy, 
 		 ice::FastRandomGreedyStrategy,
-		 ice::IterationNumberStopStrategy>
+		 ice::IterationNumberStopStrategy,
+		 ice::SimpleCrossoverStrategy
+		>
 		 ga(&cond, bstrategy, sstrategy);
 
 	ga.start();

@@ -277,9 +277,10 @@ void Solution::SwapOptimization() {
 
 
 
-Solution Solution::pathRelinking(Solution * other) const
+std::vector<Solution*> Solution::pathRelinking(Solution * other) const
 {
-	return *this;
+	std::vector<Solution*> result;
+	return std::move(result);
 }
 
 void Solution::assignmentLocalDescent()

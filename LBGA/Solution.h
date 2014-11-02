@@ -58,7 +58,11 @@ public:
 	*/
 	static std::vector<Solution *> SequentialPopulationGeneration(const Condition* const condition, int population_size);
 
-	Solution pathRelinking(Solution * other) const;
+	std::vector<Solution *> crossover(Solution * other) const {
+		return pathRelinking(other);
+	}
+
+	std::vector<Solution*> pathRelinking(Solution * other) const;
 
 	void assignmentLocalDescent();
 

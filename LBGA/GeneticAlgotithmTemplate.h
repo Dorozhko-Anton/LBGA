@@ -4,12 +4,11 @@
 
 #include <vector>
 #include <algorithm>
+#include <random>
 #include "Conditions.h"
+#include "RandomNumberGenerator.h"
 
 namespace ice {
-
-	//template <class T> 
-	//class LocalSearchStrategy;
 
 	template <class T>
 	class LocalSearchStrategy {
@@ -28,7 +27,20 @@ namespace ice {
 			return population[0];
 		}
 
-		std::vector<T*> getCreaturesForCrossover();
+		std::pair<T*, T*> getCreaturesForCrossover() {
+			std::sort(population.begin(), population.end(),
+				[](T* a, T* b) {
+				return (a->getOverLoad() - b->getOverLoad()) < 0;
+			});
+
+			std::uniform_int_distribution<int> dist(0, population.size() - 1);
+			
+			int parent1 = dist(GlobalRNG::getInstance().getEngine());
+			int parent2 = dist(GlobalRNG::getInstance().getEngine());
+
+			return std::pair<T*, T*>(population[parent1], population[parent2]);
+		}
+
 		T* getCreatureForMutation();
 
 
@@ -38,8 +50,27 @@ namespace ice {
 			}
 		};
 
-		Population(std::vector<T*> _population) : population(_population){}
+		void add(Population<T>* other) {
+			population.insert(population.end(), other->population.begin(), other->population.end());
+		}
+
+		void shrink() {
+			// DRY violation add helper method for sorting or keep sorted continuously?
+			// proirity queue ? sorted tree? 
+			std::sort(population.begin(), population.end(),
+				[](T* a, T* b) {
+				return (a->getOverLoad() - b->getOverLoad()) < 0;
+			});
+
+			population.resize(populationStartSize);
+		}
+
+		Population(std::vector<T*> _population) 
+			: population(_population),
+			populationStartSize(_population.size())
+			{}
 	private:
+		int populationStartSize;
 		std::vector<T*> population;
 	};
 
@@ -85,6 +116,25 @@ namespace ice {
 	private:
 		int numberOfIterations;
 	};
+
+	template <
+		class T
+	>
+	class CrossoverStrategy {
+	public:
+		virtual std::vector<T*> crossover(std::pair<T*, T*> parents) = 0;
+	};
+
+	template <
+		class T
+	>
+	class SimpleCrossoverStrategy: public CrossoverStrategy<T> {
+	public:
+		std::vector<T*> crossover(std::pair<T*, T*> parents) {
+			std::vector<T*> nextGen = parents.first->crossover(parents.second);
+			return std::move(nextGen);
+		}
+	};
 }
 
 
@@ -93,7 +143,8 @@ template <
 	template<typename T> class Population,
 	template<typename T> class InitialPopulationGenerator,
 	template<typename T> class LocalSearchStrategy,
-	template<typename T> class StopStrategy
+	template<typename T> class StopStrategy,
+	template<typename T> class CrossoverStrategy
 >
 class GeneticAlgorithm {
 public:
@@ -106,11 +157,13 @@ public:
 		while (!_StopStrategy.stopCriteria()) {
 			
 			// chose solutions from population to crossover
-			//Population<T> parents = population->chooseForCrossover();
-			//parents->crossover();
-			//crossover();
-			//localSearch();
-			population->apply(LSstrategy);
+			auto parents = population->getCreaturesForCrossover();
+			Population<T>* newGeneration = new Population<T>(crossoverStrategy.crossover(parents));
+			newGeneration->apply(LSstrategy);
+			
+			population->add(newGeneration);
+			population->shrink();
+			delete newGeneration;
 		}
 
 	}
@@ -126,7 +179,8 @@ public:
 		) :
 		IPGSstrategy(_generator),
 		LSstrategy(),
-		_StopStrategy(_stopCriteria)
+		_StopStrategy(_stopCriteria),
+		crossoverStrategy()
 	{
 	}
 
@@ -134,11 +188,9 @@ private:
 	InitialPopulationGenerator<T> IPGSstrategy;
 	LocalSearchStrategy<T> LSstrategy;
 	StopStrategy<T> _StopStrategy;
-
-	/*StopCriteriaStrategy<T> stopCriteria;
 	CrossoverStrategy<T> crossoverStrategy;
-	LocalSearchStrategy<T> LSstrategy;
-*/
+
+
 	Population<T>* population;
 	int populationSize = 10;
 };
