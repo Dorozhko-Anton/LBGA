@@ -97,6 +97,23 @@ namespace ice {
 			solution->FastRandomizedGreedyOptimization(3);
 		};
 	};
+	template <class T>
+	class SwapStrategy : public LocalSearchStrategy<T> {
+	public:
+		void apply(T* solution) {
+			
+			solution->SwapOptimization();
+		};
+	};
+
+	template <class T>
+	class RandomizedSwapStrategy : public LocalSearchStrategy<T> {
+	public:
+		void apply(T* solution) {
+
+			solution->RandomizedSwapOptimization();
+		};
+	};
 
 	template <class T>
 	class StopStrategy {
@@ -192,7 +209,7 @@ private:
 
 
 	Population<T>* population;
-	int populationSize = 10;
+	int populationSize = 40;
 };
 
 #endif //  GAT_H

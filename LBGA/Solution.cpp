@@ -260,27 +260,130 @@ void Solution::SwapOptimization() {
 		LoadType maxWin = 0;
 		int disk1, disk2;
 
-		for (int i = 0; i < disks1.size(); i++) {
-			for (int j = 0; j < disks2.size(); j++) {
-				if (trySwap(disks1[i], disks2[j]) > maxWin) {
+		// if server with disk2 has 0 overload => try move
+		if (serversOverLoads[lessOverloadedServer] == 0) {
+			for (int i = 0; i < disks1.size(); i++) {		
+				LoadType win = tryMove(disks1[i], lessOverloadedServer);
+
+				if (win > maxWin) {
 					disk1 = disks1[i];
-					disk2 = disks2[j];
+					maxWin = win;
 				}
 			}
+			if (maxWin > 0) {
+				move(disk1, lessOverloadedServer);
+				moveDone = true;
+			}
+			
 		}
-		if (maxWin > 0) {
-			swap(disk1, disk2);
-			moveDone = true;
+		else {
+			for (int i = 0; i < disks1.size(); i++) {
+				for (int j = 0; j < disks2.size(); j++) {
+					LoadType win = trySwap(disks1[i], disks2[j]);
+
+					if (win > maxWin) {
+						disk1 = disks1[i];
+						disk2 = disks2[j];
+						maxWin = win;
+					}
+				}
+			}
+			if (maxWin > 0) {
+				swap(disk1, disk2);
+				moveDone = true;
+			}
+		}
+	} while (moveDone);
+}
+
+void Solution::RandomizedSwapOptimization() {
+	bool moveDone;
+
+	do {
+		moveDone = false;
+
+		std::vector<int> serversByOverLoad = getServersByOverLoad();
+
+		std::uniform_int_distribution<int> distMore(0, serversByOverLoad.size() / 2);
+		std::uniform_int_distribution<int> distLess(serversByOverLoad.size() / 2 + 1, serversByOverLoad.size() - 1);
+
+		int moreOverloadedServerIndex = distMore(GlobalRNG::getInstance().getEngine());
+		int lessOverloadedServerIndex = distLess(GlobalRNG::getInstance().getEngine());
+
+		int moreOverloadedServer = serversByOverLoad[moreOverloadedServerIndex];
+		int lessOverloadedServer = serversByOverLoad[lessOverloadedServerIndex];
+
+		std::vector<int> disks1 = chooseRandomDisksFromServer(condition->getNumberOfDisks(), moreOverloadedServer);
+		std::vector<int> disks2 = chooseRandomDisksFromServer(condition->getNumberOfDisks(), lessOverloadedServer);
+
+
+		LoadType maxWin = 0;
+		int disk1, disk2;
+
+		// if server with disk2 has 0 overload => try move
+		if (serversOverLoads[lessOverloadedServer] == 0) {
+			for (int i = 0; i < disks1.size(); i++) {
+				LoadType win = tryMove(disks1[i], lessOverloadedServer);
+
+				if (win > maxWin) {
+					disk1 = disks1[i];
+					maxWin = win;
+				}
+			}
+			if (maxWin > 0) {
+				move(disk1, lessOverloadedServer);
+				moveDone = true;
+			}
+
+		}
+		else {
+			for (int i = 0; i < disks1.size(); i++) {
+				for (int j = 0; j < disks2.size(); j++) {
+					LoadType win = trySwap(disks1[i], disks2[j]);
+
+					if (win > maxWin) {
+						disk1 = disks1[i];
+						disk2 = disks2[j];
+						maxWin = win;
+					}
+				}
+			}
+			if (maxWin > 0) {
+				swap(disk1, disk2);
+				moveDone = true;
+			}
 		}
 	} while (moveDone);
 }
 
 
-
 std::vector<Solution*> Solution::pathRelinking(Solution * other) const
 {
-	std::vector<Solution*> result;
-	return std::move(result);
+	std::vector<Solution *> svec;
+
+	Solution * s = new Solution(*this);
+
+	for (int i = 0; i < condition->getNumberOfDisks(); i++) {
+		if (solution[i] != other->solution[i]) {
+			if (canMove(i, other->solution[i])) {
+				s->move(i, other->solution[i]);
+				svec.push_back(new Solution(*s));
+			}
+		}
+	}
+
+	std::sort(svec.begin(), svec.end(), [](Solution *a, Solution *b) {
+		return a->getOverLoad() < b->getOverLoad();
+	});
+	if (svec.size() > 5) {
+		for (int i = 5; i < svec.size(); i++) {
+			delete svec[i];
+		}
+		svec.resize(5);
+	}
+	delete s;
+
+	return std::move(svec);
 }
 
 void Solution::assignmentLocalDescent()
@@ -426,8 +529,8 @@ LoadType Solution::trySwap(int d1, int d2) const {
 
 bool Solution::canSwap(int d1, int d2) const {
 
-	int s1 = solution[s1];
-	int s2 = solution[s2];
+	int s1 = solution[d1];
+	int s2 = solution[d2];
 
 	bool canEjectD1 = true, canEjectD2 = true;
 	bool canInsertD1 = true, canInsertD2 = true;

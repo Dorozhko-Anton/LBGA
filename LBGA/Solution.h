@@ -91,6 +91,8 @@ public:
 	*/
 	void SwapOptimization();
 
+	void RandomizedSwapOptimization();
+
 	/**
 		swap OPt helper functions
 	*/
