@@ -4,28 +4,31 @@
 #include "Conditions.h"
 #include "Solution.h"
 
-
+#include "Population.h"
+#include "PopulationGenerationStrategy.h"
+#include "LocalSearchStrategy.h"
+#include "CrossoverStrategy.h"
+#include "StopStrategy.h"
 
 void main() 
 {
-	using namespace ice;
 
 	//std::ifstream dataFile("data_700_150.txt");
 	std::ifstream dataFile("inst1.txt");
 
 	Condition cond(dataFile);
-	ice::BreedingStrategy<Solution> bstrategy(&cond);
-	ice::IterationNumberStopStrategy<Solution> sstrategy(400);
+	BreedingStrategy<Solution> bstrategy(&cond);
+	IterationNumberStopStrategy<Solution> sstrategy(400);
 
 	GeneticAlgorithm
 		<Solution, 
-		 ice::Population, 
-		 ice::BreedingStrategy, 
-		 //ice::FastRandomGreedyStrategy,
-		 //ice::SwapStrategy,
-		 ice::RandomizedSwapStrategy,
-		 ice::IterationNumberStopStrategy,
-		 ice::SimpleCrossoverStrategy
+		 strategies::Population, 
+		 BreedingStrategy, 
+		 //FastRandomGreedyStrategy,
+		 //SwapStrategy,
+		 RandomizedSwapStrategy,
+		 IterationNumberStopStrategy,
+		 SimpleCrossoverStrategy
 		>
 		 ga(&cond, bstrategy, sstrategy);
 
