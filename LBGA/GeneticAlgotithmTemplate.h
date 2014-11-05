@@ -20,51 +20,51 @@ template <
 class GeneticAlgorithm {
 public:
 	void start() {
-		// generate start population
-		population = new Population<T>(IPGSstrategy.generateInitialPopulation(populationSize));
-		// apply localSearch to population
-		population->apply(LSstrategy);
+		// generate start mPopulation
+		mPopulation = new Population<T>(mInitialPopulationGenerator.generateInitialPopulation(mPopulationSize));
+		// apply localSearch to mPopulation
+		mPopulation->apply(mLocalSearchStrategy);
 		
-		while (!_StopStrategy.stopCriteria()) {
+		while (!mStopStrategy.stopCriteria()) {
 			
-			// chose solutions from population to crossover
-			auto parents = population->getCreaturesForCrossover();
-			Population<T>* newGeneration = new Population<T>(crossoverStrategy.crossover(parents));
-			newGeneration->apply(LSstrategy);
+			// chose solutions from mPopulation to crossover
+			auto parents = mPopulation->getCreaturesForCrossover();
+			Population<T>* newGeneration = new Population<T>(mCrossoverStrategy.crossover(parents));
+			newGeneration->apply(mLocalSearchStrategy);
 			
-			population->add(newGeneration);
-			population->shrink();
-			population->apply(LSstrategy);
+			mPopulation->add(newGeneration);
+			mPopulation->shrink();
+			mPopulation->apply(mLocalSearchStrategy);
 			delete newGeneration;
 		}
 
 	}
 
-	T* getResult() const
-	{
-		return population->getBest();
+	T* getResult() const {
+		return mPopulation->getBest();
 	}
 
-	GeneticAlgorithm(const Condition* const conditions,
+	GeneticAlgorithm(
+		const Condition* const conditions,
 		InitialPopulationGenerator<T> _generator,
 		StopStrategy<T> _stopCriteria
-		) :
-		IPGSstrategy(_generator),
-		LSstrategy(),
-		_StopStrategy(_stopCriteria),
-		crossoverStrategy()
+	) :
+		mInitialPopulationGenerator(_generator),
+		mLocalSearchStrategy(),
+		mStopStrategy(_stopCriteria),
+		mCrossoverStrategy()
 	{
 	}
 
 private:
-	InitialPopulationGenerator<T> IPGSstrategy;
-	LocalSearchStrategy<T> LSstrategy;
-	StopStrategy<T> _StopStrategy;
-	CrossoverStrategy<T> crossoverStrategy;
+	InitialPopulationGenerator<T> mInitialPopulationGenerator;
+	LocalSearchStrategy<T> mLocalSearchStrategy;
+	StopStrategy<T> mStopStrategy;
+	CrossoverStrategy<T> mCrossoverStrategy;
 
 
-	Population<T>* population;
-	int populationSize = 30;
+	Population<T>* mPopulation;
+	int mPopulationSize = 30;
 };
 
 #endif //  GAT_H

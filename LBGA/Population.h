@@ -2,64 +2,60 @@
 #define POPULATION_H
 #pragma once
 #include "LocalSearchStrategy.h"
+#include "RandomNumberGenerator.h"
 
 namespace strategies {
 	template <class T>
 	class Population {
 	public:
 		T* getBest() {
-			std::sort(population.begin(), population.end(),
-				[](T* a, T* b) {
-				return (a->getOverLoad() - b->getOverLoad()) < 0;
-			});
-			return population[0];
+			sortByOverLoad();
+			return mPopulation[0];
 		}
 
 		std::pair<T*, T*> getCreaturesForCrossover() {
-			std::sort(population.begin(), population.end(),
-				[](T* a, T* b) {
-				return (a->getOverLoad() - b->getOverLoad()) < 0;
-			});
+			sortByOverLoad();
 
-			std::uniform_int_distribution<int> dist(0, population.size() - 1);
+			std::uniform_int_distribution<int> dist(0, mPopulation.size() - 1);
 
 			int parent1 = dist(GlobalRNG::getInstance().getEngine());
 			int parent2 = dist(GlobalRNG::getInstance().getEngine());
 
-			return std::pair<T*, T*>(population[parent1], population[parent2]);
+			return std::pair<T*, T*>(mPopulation[parent1], mPopulation[parent2]);
 		}
 
 		T* getCreatureForMutation();
 
 
 		void apply(LocalSearchStrategy<T>& const lsstrategy) {
-			for (std::vector<T*>::iterator p = population.begin(); p != population.end(); p++) {
+			for (std::vector<T*>::iterator p = mPopulation.begin(); p != mPopulation.end(); p++) {
 				lsstrategy.apply(*p);
 			}
 		};
 
 		void add(Population<T>* other) {
-			population.insert(population.end(), other->population.begin(), other->population.end());
+			mPopulation.insert(mPopulation.end(), other->mPopulation.begin(), other->mPopulation.end());
 		}
 
 		void shrink() {
-			// DRY violation add helper method for sorting or keep sorted continuously?
-			// proirity queue ? sorted tree? 
-			std::sort(population.begin(), population.end(),
-				[](T* a, T* b) {
-				return (a->getOverLoad() - b->getOverLoad()) < 0;
-			});
-
-			population.resize(populationStartSize);
+			sortByOverLoad();
+			mPopulation.resize(mPopulationStartSize);
 		}
 
 		Population(std::vector<T*> _population)
-			: population(_population),
-			populationStartSize(_population.size())
+			: mPopulation(_population),
+			mPopulationStartSize(_population.size())
 		{}
 	private:
-		int populationStartSize;
-		std::vector<T*> population;
+		void sortByOverLoad() {
+			std::sort(mPopulation.begin(), mPopulation.end(),
+				[](T* a, T* b) {
+				return (a->getOverLoad() - b->getOverLoad()) < 0;
+			});
+		}
+
+		int mPopulationStartSize;
+		std::vector<T*> mPopulation;
 	};
 }
 

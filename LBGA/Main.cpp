@@ -13,12 +13,12 @@
 void main() 
 {
 
-	//std::ifstream dataFile("data_700_150.txt");
-	std::ifstream dataFile("inst1.txt");
+	std::ifstream dataFile("data_700_150.txt");
+	//std::ifstream dataFile("inst1.txt");
 
 	Condition cond(dataFile);
 	BreedingStrategy<Solution> bstrategy(&cond);
-	IterationNumberStopStrategy<Solution> sstrategy(400);
+	IterationNumberStopStrategy<Solution> sstrategy(100);
 
 	GeneticAlgorithm
 		<Solution, 
@@ -33,7 +33,6 @@ void main()
 		 ga(&cond, bstrategy, sstrategy);
 
 	std::clock_t start, finish;
-	std::clock_t timeSpan;
 	start = std::clock();
 	ga.start();
 	finish = std::clock();

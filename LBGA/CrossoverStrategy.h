@@ -2,6 +2,8 @@
 #define CROSSOVER_STRATEGY_H
 #pragma once
 
+#include <vector>
+
 template <
 	class T
 >
