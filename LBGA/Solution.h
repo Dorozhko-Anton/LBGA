@@ -18,7 +18,7 @@ public:
 	Solution(){
 
 	}
-	Solution(const Condition* const _problemConditions, std::ifstream &ifs);
+	Solution(const Condition* const _problemConditions, std::ifstream &ifs, bool isInitSolution = false);
 
 	~Solution(){
 
@@ -64,7 +64,11 @@ public:
 
 	std::vector<Solution*> pathRelinking(Solution * other) const;
 
-	void assignmentLocalDescent();
+	void LocalOptAsAssignmentProblem();
+	//helpers
+	int ejectRandomDiskFromServer(int server);
+	LoadType tryInsertDiskToServer(int disk, int server);
+
 
 	void localSearch();
 
@@ -212,9 +216,11 @@ private:
 	*/
 	std::vector< std::vector< std::vector<LoadType> > > serversLoads;
 
-
+	friend std::ostream &operator<<(std::ostream &ofs, const Solution &solution);
 };
+std::ostream &operator<<(std::ostream &ofs, const Solution &solution);
 
 const LoadType EPSILON = 10e-6;
+const LoadType INF_LOAD = 10e6;
 
 #endif // SOLUTION_H

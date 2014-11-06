@@ -4,7 +4,21 @@
 #include "Solution.h"
 #include "RandomNumberGenerator.h"
 
-Solution::Solution(const Condition* const _condition, std::ifstream &ifs) 
+std::ostream &operator<<(std::ostream &ofs, const Solution &solution)
+{
+	//ofs << *(solution.problemConditions);
+	for (std::vector< int >::const_iterator it = solution.solution.begin();
+		it != solution.solution.end();
+		it++)
+	{
+		ofs << *it + 1 << std::endl;
+		// in real servers are numbered 1..numberOfservers;
+	}
+	return ofs;
+}
+
+
+Solution::Solution(const Condition* const _condition, std::ifstream &ifs, bool isInitSolution)
 {
 	this->condition = _condition;
 	this->solution.resize(0);
@@ -23,7 +37,9 @@ Solution::Solution(const Condition* const _condition, std::ifstream &ifs)
 	this->currentInsertionCost.resize(condition->getNumberOfServers(),
 		std::vector< LoadType >(condition->getNumberOfCharacteristics(), 0));
 
-	//calculateEjectionAndInsertionExpenses();
+	if (!isInitSolution) {
+		calculateEjectionAndInsertionExpenses();
+	}
 	calculateOverLoad();
 }
 
@@ -386,10 +402,6 @@ std::vector<Solution*> Solution::pathRelinking(Solution * other) const
 	return std::move(svec);
 }
 
-void Solution::assignmentLocalDescent()
-{
-
-}
 
 void Solution::localSearch()
 {
@@ -555,4 +567,144 @@ bool Solution::canSwap(int d1, int d2) const {
 	}
 	
 	return canEjectD1 && canEjectD2 && canInsertD1 && canInsertD2;
+}
+
+
+
+std::vector<int> solveMinAssignmentProblem(std::vector<std::vector<double>> a) {
+	double INF = INF_LOAD;
+	int n = a.size() - 1;
+	int m = a.size() - 1;
+
+	std::vector<long long> u(n + 1), p(m + 1), way(m + 1);
+	std::vector<double> v(m + 1);
+	for (int i = 1; i <= n; ++i) {
+		p[0] = i;
+		int j0 = 0;
+		std::vector<double> minv(m + 1, INF);
+		std::vector<char> used(m + 1, false);
+		do {
+			used[j0] = true;
+			int i0 = p[j0], j1 = 0;
+			double delta = INF;
+			for (int j = 1; j <= m; ++j)
+			if (!used[j]) {
+				int cur = a[i0][j] - u[i0] - v[j];
+				if (cur < minv[j])
+					minv[j] = cur, way[j] = j0;
+				if (minv[j] < delta)
+					delta = minv[j], j1 = j;
+			}
+			for (int j = 0; j <= m; ++j)
+			if (used[j])
+				u[p[j]] += delta, v[j] -= delta;
+			else
+				minv[j] -= delta;
+			j0 = j1;
+		} while (p[j0] != 0);
+		do {
+			int j1 = way[j0];
+			p[j0] = p[j1];
+			j0 = j1;
+		} while (j0);
+	}
+
+	std::vector<int> ans(n + 1);
+	for (int j = 1; j <= m; ++j)
+		ans[p[j]] = j;
+
+	ans[0] = -v[0];
+
+	return ans;
+}
+
+
+void Solution::LocalOptAsAssignmentProblem()
+{
+	// TODO:
+	//
+	int S = condition->getNumberOfServers();
+	std::vector < int > disks(S, 0);
+
+
+	// from each server eject 1 disk ( it is work in initial formulation of assignment problem)
+	for (int i = 0; i < S; i++) {
+		disks[i] = ejectRandomDiskFromServer(i);
+	}
+
+	// evaluate C[i][j] - weight matrix
+	std::vector< std::vector < LoadType > > C =
+		std::vector<std::vector < LoadType >>(S + 1, std::vector <LoadType>(S + 1));
+
+
+	for (int i = 0; i < S + 1; i++) {
+		for (int j = 0; j < S + 1; j++) {
+			if (i == 0 || j == 0) {
+				C[i][j] = 0;
+			}
+			else {
+				
+				if (canInsert(disks[i - 1], j - 1)) {
+					C[i][j] = tryInsertDiskToServer(disks[i - 1], j - 1);
+				}
+				else {
+					C[i][j] = INF_LOAD;
+				}
+			}
+		}
+	}
+
+	std::vector < int > newPlacement(S + 1, 0);
+	newPlacement = solveMinAssignmentProblem(C);
+
+	for (int i = 1; i < newPlacement.size(); i++) {
+		move(disks[i - 1], newPlacement[i] - 1);
+	}
+	newPlacement.clear();
+	calculateEjectionAndInsertionExpenses();
+	calculateOverLoad();
+}
+
+int Solution::ejectRandomDiskFromServer(int server) {
+	std::vector<int> allDisks;
+	// write out all disks that belong to server
+	for (int i = 0; i < condition->getNumberOfDisks(); i++) {
+		if (solution[i] == server) {
+			allDisks.push_back(i);
+		}
+	}
+
+	std::uniform_int_distribution<int> dist(0, allDisks.size());
+
+	int disk = dist(GlobalRNG::getInstance().getEngine());
+
+	if (canEject(disk, server)) {
+		solution[disk] = -1;
+		return disk;
+	}
+
+	return -1;
+}
+LoadType Solution::tryInsertDiskToServer(int disk, int server) {
+	LoadType resultServerOverLoad = 0;
+	LoadType serverLoad = 0;
+
+	if (disk == -1) {
+		return serversOverLoads[server];
+	}
+
+	for (int c = 0; c < condition->getNumberOfCharacteristics(); c++)
+	{
+		for (int t = 0; t < condition->getTimePeriod(); t++)
+		{
+			serverLoad = serversLoads[server][c][t] +
+				condition->getDiskLoad(disk, c, t);
+
+			int add = serverLoad
+				- condition->getServerLoadLimits(server, c);
+			resultServerOverLoad += add > 0 ? add : 0;
+		}
+
+	}
+	return resultServerOverLoad;
 }

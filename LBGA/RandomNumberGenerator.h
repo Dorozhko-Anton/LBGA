@@ -21,17 +21,7 @@ private:
 	
 	std::mt19937 mt;
 
-	GlobalRNG() : mt(std::random_device()()) {
-	
-		std::uniform_int_distribution<int> dist(0, 100);
-
-		for (int i = 1; i < 16; i++) {
-			std::cout << dist(mt) << " ";
-		}
-		std::cout << std::endl;
-	}
-
-	
+	GlobalRNG() : mt(std::random_device()()) {}
 };
 
 #endif

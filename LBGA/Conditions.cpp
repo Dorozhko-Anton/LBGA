@@ -78,7 +78,7 @@ Condition::Condition(std::ifstream &inputFile) {
 		}
 	}
 	
-	initialSolution = new Solution(this, inputFile);
+	initialSolution = new Solution(this, inputFile, true);
 }
 
 Condition::~Condition() {
