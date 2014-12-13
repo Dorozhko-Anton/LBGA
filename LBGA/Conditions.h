@@ -45,6 +45,7 @@ public:
 	inline LoadType getServerLoadLimits(int server, int characteristic) const;
 	inline LoadType getInsertionLimits(int server, int characteristic) const;
 	inline LoadType getEjectionLimits(int server, int characteristic) const;
+	inline LoadType getOverallLimits(int server, int characteristic) const;
 
 	inline LoadType getDiskLoad(int disk, int characteristic, int time) const;
 	inline LoadType getInsertionCost(int disk, int server, int characteristic) const;
@@ -152,6 +153,11 @@ inline LoadType Condition::getInsertionLimits(int server, int characteristic) co
 {
 	return insertionLimits[server][characteristic];
 }
+inline LoadType Condition::getOverallLimits(int server, int characteristic) const
+{
+	return ejectionLimits[server][characteristic] + insertionLimits[server][characteristic];
+}
+
 inline LoadType Condition::getEjectionLimits(int server, int characteristic) const
 {
 	return ejectionLimits[server][characteristic];

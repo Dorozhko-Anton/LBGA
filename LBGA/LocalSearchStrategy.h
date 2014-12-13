@@ -34,4 +34,12 @@ public:
 	};
 };
 
+template <class T>
+class ExtensiveRandomizedSwapStrategy : public LocalSearchStrategy<T> {
+public:
+	void apply(T* solution) {
+		solution->randomizedSwapOpt1();
+	};
+};
+
 #endif //LS_STRATEGY_H

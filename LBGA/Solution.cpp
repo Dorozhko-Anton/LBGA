@@ -43,6 +43,10 @@ Solution::Solution(const Condition* const _condition, std::ifstream &ifs, bool i
 	calculateOverLoad();
 }
 
+bool Solution::operator==(const Solution const & other) const {
+	return this->solution == other.solution;
+}
+
 
 
 void Solution::calculateOverLoad()
@@ -124,15 +128,40 @@ bool Solution::isFeasible() const
 {
 	for (int s = 0; s < condition->getNumberOfServers(); s++) {
 		for (int c = 0; c < condition->getNumberOfCharacteristics(); c++) {
-			if (currentEjectionCost[s][c] > condition->getEjectionLimits(s, c) + EPSILON) {
+			/*if (currentEjectionCost[s][c] > condition->getEjectionLimits(s, c)) {
 				return false;
 			}
-			if (currentInsertionCost[s][c] > condition->getInsertionLimits(s, c) + EPSILON) {
+			if (currentInsertionCost[s][c] > condition->getInsertionLimits(s, c)) {
+				return false;
+			}*/
+			if (getOverallExpenses(s, c) > condition->getOverallLimits(s, c)) {
 				return false;
 			}
 		}
 	}
 	return true;
+}
+
+std::vector<Solution *> Solution::RandomPopulationGeneration(const Condition* const condition, int population_size)
+{
+	std::vector<Solution *> population(0);
+	population.push_back(new Solution(*condition->getInitSolution()));
+
+	
+	int moves = std::min(population_size, condition->getNumberOfDisks() / 10);
+
+	while (population.size() < population_size)
+	{
+		Solution * new_solution = new Solution(*condition->getInitSolution());
+
+		for (int i = 0; i < moves; i++) {
+			new_solution->randomGoodSwap();
+		}
+
+		population.push_back(new_solution);
+	}
+
+	return std::move(population);
 }
 
 std::vector<Solution *> Solution::SequentialPopulationGeneration(const Condition* const condition, int population_size)
@@ -141,14 +170,20 @@ std::vector<Solution *> Solution::SequentialPopulationGeneration(const Condition
 	population.push_back(new Solution(*condition->getInitSolution()));
 
 	int delta = std::min(population_size, condition->getNumberOfDisks() / 10);
+	int attemptsMaxNumber;
 
 	while (population.size() < population_size)
 	{
 		Solution * new_solution = new Solution(*condition->getInitSolution());
 
-		while (hammDistToPopulation(population, new_solution) < delta)
+
+		attemptsMaxNumber = 2 * delta;
+		while (hammDistToPopulation(population, new_solution) < delta && attemptsMaxNumber-- > 0)
 		{
 			new_solution->randomMove();
+		}
+		if (attemptsMaxNumber == 0) {
+			new_solution->FastRandomizedGreedyOptimization(3);
 		}
 
 		population.push_back(new_solution);
@@ -156,6 +191,8 @@ std::vector<Solution *> Solution::SequentialPopulationGeneration(const Condition
 
 	return std::move(population);
 }
+
+
 
 int Solution::hammDistToPopulation(const Population population, const Solution * const solution)
 {
@@ -206,12 +243,20 @@ bool Solution::canMove(int disk, int server) const {
 	return canEject(disk, solution[disk]) && canInsert(disk, server);
 }
 
+LoadType Solution::getOverallExpenses(int server, int characteristic) const {
+	return currentEjectionCost[server][characteristic] + currentInsertionCost[server][characteristic];
+}
+
 bool Solution::canEject(int diskToMove, int serverToEjectDisk) const  {
 
+	if (diskToMove == -1) {
+		return true;
+	}
+
 	for (int c = 0; c < condition->getNumberOfCharacteristics(); c++) {
-		if ((currentEjectionCost[serverToEjectDisk][c]
+		if ((getOverallExpenses(serverToEjectDisk, c)
 			+ condition->getEjectionCost(diskToMove, serverToEjectDisk, c))
-	> condition->getEjectionLimits(serverToEjectDisk, c))
+	> condition->getOverallLimits(serverToEjectDisk, c))
 		{
 
 			return false;
@@ -235,9 +280,9 @@ bool Solution::canInsert(int diskToMove, int serverToInsertDisk) const {
 
 
 	for (int c = 0; c < condition->getNumberOfCharacteristics(); c++) {
-		if ((currentInsertionCost[serverToInsertDisk][c]
+		if ((getOverallExpenses(serverToInsertDisk, c)
 			+ condition->getInsertionCost(diskToMove, serverToInsertDisk, c))
-	> condition->getInsertionLimits(serverToInsertDisk, c)) {
+	> condition->getOverallLimits(serverToInsertDisk, c)) {
 			return false;
 		}
 	}
@@ -257,59 +302,82 @@ void Solution::swap(int d1, int d2) {
 	this->calculateOverLoad();
 }
 
+struct Move {
+	int d;
+	int s;
+
+	Move(int _d, int _s ) : d(_d), s(_s) {}
+};
 void Solution::SwapOptimization() {
 
-	bool moveDone;
+	//std::vector<std::pair<Move, LoadType>> moves;
+	std::pair<Move, LoadType> bestMove(Move(1, solution[1]), 0);
 
-	do {
-		moveDone = false;
+	for (int d = 0; d < condition->getNumberOfDisks(); d++) {
+		for (int s = 0; s < condition->getNumberOfServers(); s++) {
+			if (s != solution[d]) {
+				std::pair<Move, LoadType> tmp(Move(d, s), tryMove(d, s));
 
-		std::vector<int> serversByOverLoad = getServersByOverLoad();
-
-		int moreOverloadedServer = serversByOverLoad[0];
-		int lessOverloadedServer = serversByOverLoad[serversByOverLoad.size() - 1];
-
-		std::vector<int> disks1 = chooseRandomDisksFromServer(condition->getNumberOfDisks(), moreOverloadedServer);
-		std::vector<int> disks2 = chooseRandomDisksFromServer(condition->getNumberOfDisks(), lessOverloadedServer);
-
-
-		LoadType maxWin = 0;
-		int disk1, disk2;
-
-		// if server with disk2 has 0 overload => try move
-		if (serversOverLoads[lessOverloadedServer] == 0) {
-			for (int i = 0; i < disks1.size(); i++) {		
-				LoadType win = tryMove(disks1[i], lessOverloadedServer);
-
-				if (win > maxWin) {
-					disk1 = disks1[i];
-					maxWin = win;
+				if (tmp.second > bestMove.second) {
+					bestMove = tmp;
 				}
 			}
-			if (maxWin > 0) {
-				move(disk1, lessOverloadedServer);
-				moveDone = true;
-			}
-			
 		}
-		else {
-			for (int i = 0; i < disks1.size(); i++) {
-				for (int j = 0; j < disks2.size(); j++) {
-					LoadType win = trySwap(disks1[i], disks2[j]);
+	}
 
-					if (win > maxWin) {
-						disk1 = disks1[i];
-						disk2 = disks2[j];
-						maxWin = win;
+	move(bestMove.first.d, bestMove.first.s);
+
+	/*int numberOfNotImprovingIterations = 10;
+
+	Solution * champ = new Solution(*this);
+	Solution * curr = new Solution(*this);
+
+	while (numberOfNotImprovingIterations > 0)
+	{
+		std::uniform_int_distribution<int> dist(0, condition->getNumberOfDisks() - 1);
+
+		int d1 = dist(GlobalRNG::getInstance().getEngine());
+		int d2 = dist(GlobalRNG::getInstance().getEngine());
+
+		int s1 = solution[d1];
+		int s2 = solution[d2];
+
+		if (s1 != s2) {
+			if (serversOverLoads[s1] == 0 ^ serversOverLoads[s2] == 0) {
+				if (serversOverLoads[s1] == 0) {
+					if (canMove(d2, s1)) {
+						curr->move(d2, s1);
+					}
+				}
+				else {
+					if (canMove(d1, s2)) {
+						curr->move(d1, s2);
 					}
 				}
 			}
-			if (maxWin > 0) {
-				swap(disk1, disk2);
-				moveDone = true;
+			else {
+				if (serversOverLoads[s1] == 0 && serversOverLoads[s2] == 0) {
+					numberOfNotImprovingIterations--; 
+					continue;
+				}
+				else {
+					if (canSwap(d1, d2)) {
+						curr->swap(d1, d2);
+					}
+				}
 			}
+
+
 		}
-	} while (moveDone);
+
+		if (curr->getOverLoad() < champ->getOverLoad()) {
+			delete champ;
+			champ = new Solution(*curr);
+		}
+		else {
+			numberOfNotImprovingIterations--;
+		}
+	}*/
 }
 
 void Solution::RandomizedSwapOptimization() {
@@ -372,6 +440,58 @@ void Solution::RandomizedSwapOptimization() {
 	} while (moveDone);
 }
 
+void Solution::randomizedSwapOpt1() {
+	for (int i = 0; i < condition->getNumberOfDisks(); i++) {
+		this->swap2good();
+	}
+}
+
+void Solution::randomGoodSwap() {
+
+	std::vector<int> serversByOverLoad = getServersByOverLoad();
+
+	std::uniform_int_distribution<int> distMore(0, serversByOverLoad.size() / 2);
+	std::uniform_int_distribution<int> distLess(serversByOverLoad.size() / 2 + 1, serversByOverLoad.size() - 1);
+
+	int moreOverloadedServerIndex = distMore(GlobalRNG::getInstance().getEngine());
+	int lessOverloadedServerIndex = distLess(GlobalRNG::getInstance().getEngine());
+
+	int moreOverloadedServer = serversByOverLoad[moreOverloadedServerIndex];
+	int lessOverloadedServer = serversByOverLoad[lessOverloadedServerIndex];
+
+	std::vector<int> disks1 = chooseRandomDisksFromServer(condition->getNumberOfDisks(), moreOverloadedServer);
+	std::vector<int> disks2 = chooseRandomDisksFromServer(condition->getNumberOfDisks(), lessOverloadedServer);
+
+	int d1 = disks1[0];
+	int d2 = disks2[0];
+
+	if (trySwap(d1, d2) > 0) {
+		swap(d1, d2);
+	}
+}
+
+void Solution::swap2() {
+	std::uniform_int_distribution<int> uniDist(0, condition->getNumberOfDisks());
+
+	int d1 = uniDist(GlobalRNG::getInstance().getEngine());
+	int d2 = uniDist(GlobalRNG::getInstance().getEngine());
+
+	if (d1 != d2 && solution[d1] != solution[d2] && canSwap(d1, d2)) {
+		swap(d1, d2);
+	}
+}
+
+void Solution::swap2good() {
+	std::uniform_int_distribution<int> uniDist(0, condition->getNumberOfDisks() - 1);
+
+	int d1 = uniDist(GlobalRNG::getInstance().getEngine());
+	int d2 = uniDist(GlobalRNG::getInstance().getEngine());
+
+	if (d1 != d2 && solution[d1] != solution[d2] && trySwap(d1, d2) > 0) {
+		swap(d1, d2);
+	}
+}
+
 
 std::vector<Solution*> Solution::pathRelinking(Solution * other) const
 {
@@ -379,14 +499,34 @@ std::vector<Solution*> Solution::pathRelinking(Solution * other) const
 
 	Solution * s = new Solution(*this);
 
-	for (int i = 0; i < condition->getNumberOfDisks(); i++) {
+	/*for (int i = 0; i < condition->getNumberOfDisks(); i++) {
 		if (solution[i] != other->solution[i]) {
 			if (canMove(i, other->solution[i])) {
 				s->move(i, other->solution[i]);
-				svec.push_back(new Solution(*s));
+				Solution * tmp = new Solution(*s);
+				tmp->RandomizedSwapOptimization();
+				svec.push_back(tmp);
 			}
 		}
+	}*/
+	std::vector<int> diff;
+	for (int i = 0; i < condition->getNumberOfDisks(); i++) {
+		if (this->solution[i] != other->solution[i]) {
+			diff.push_back(i);
+		}
 	}
+
+	std::random_shuffle(diff.begin(), diff.end());
+
+	for (int i = 0; i < diff.size(); i++) {
+			if (canMove(i, other->solution[i])) {
+				s->move(i, other->solution[i]);
+				Solution * tmp = new Solution(*s);
+				tmp->FastRandomizedGreedyOptimization(3);
+				svec.push_back(tmp);
+			}
+	}
+
 
 	std::sort(svec.begin(), svec.end(), [](Solution *a, Solution *b) {
 		return a->getOverLoad() < b->getOverLoad();
@@ -550,19 +690,19 @@ bool Solution::canSwap(int d1, int d2) const {
 	for (int c = 0; c < condition->getNumberOfCharacteristics(); c++) {
 		
 		if (s2 != condition->getInitSolution()->solution[d1]) {
-			canEjectD1 = canEjectD1 && (currentEjectionCost[s1][c]
-				+ condition->getEjectionCost(d1, s1, c) < condition->getEjectionLimits(s1, c));
+			canEjectD1 = canEjectD1 && (getOverallExpenses(s1, c)
+				+ condition->getEjectionCost(d1, s1, c) < condition->getOverallLimits(s1, c));
 
 			canInsertD1 = canInsertD1 &&
-				(currentInsertionCost[s1][c] + condition->getInsertionCost(d2, s1, c) < condition->getInsertionLimits(s1, c));
+				(getOverallExpenses(s1, c) + condition->getInsertionCost(d2, s1, c) < condition->getOverallLimits(s1, c));
 		}
 
 		if (s1 != condition->getInitSolution()->solution[d2]) {
-			canEjectD2 = canEjectD2 && (currentEjectionCost[s2][c]
-				+ condition->getEjectionCost(d2, s2, c) < condition->getEjectionLimits(s2, c));
+			canEjectD2 = canEjectD2 && (getOverallExpenses(s2, c)
+				+ condition->getEjectionCost(d2, s2, c) < condition->getOverallLimits(s2, c));
 
 			canInsertD2 = canInsertD2 &&
-				(currentInsertionCost[s2][c] + condition->getInsertionCost(d1, s2, c) < condition->getInsertionLimits(s2, c));
+				(getOverallExpenses(s2, c) + condition->getInsertionCost(d1, s2, c) < condition->getOverallLimits(s2, c));
 		}
 	}
 	
@@ -627,7 +767,7 @@ void Solution::LocalOptAsAssignmentProblem()
 	std::vector < int > disks(S, 0);
 
 
-	// from each server eject 1 disk ( it is work in initial formulation of assignment problem)
+	// from each server eject 1 disk ( it is "work" in initial formulation of assignment problem)
 	for (int i = 0; i < S; i++) {
 		disks[i] = ejectRandomDiskFromServer(i);
 	}
@@ -658,7 +798,12 @@ void Solution::LocalOptAsAssignmentProblem()
 	newPlacement = solveMinAssignmentProblem(C);
 
 	for (int i = 1; i < newPlacement.size(); i++) {
-		move(disks[i - 1], newPlacement[i] - 1);
+		if (disks[i - 1] != -1) {
+			//std::cout << "move" << disks[i - 1] << " to " << newPlacement[i] - 1 << std::endl;
+			solution[disks[i - 1]] = newPlacement[i] - 1;
+			//move(disks[i - 1], newPlacement[i] - 1);
+		}
+		
 	}
 	newPlacement.clear();
 	calculateEjectionAndInsertionExpenses();

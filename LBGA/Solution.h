@@ -18,6 +18,8 @@ public:
 	Solution(){
 
 	}
+
+	bool operator==(const Solution const & other) const;
 	Solution(const Condition* const _problemConditions, std::ifstream &ifs, bool isInitSolution = false);
 
 	~Solution(){
@@ -58,6 +60,13 @@ public:
 	*/
 	static std::vector<Solution *> SequentialPopulationGeneration(const Condition* const condition, int population_size);
 
+
+	/**
+		@brief generate stating population randomly, but track the limitations
+	*/
+	static std::vector<Solution *> RandomPopulationGeneration(const Condition* const condition, int population_size);
+
+
 	std::vector<Solution *> crossover(Solution * other) const {
 		return pathRelinking(other);
 	}
@@ -95,7 +104,32 @@ public:
 	*/
 	void SwapOptimization();
 
+	/**
+	 make random swap if only it decrease overload
+	*/
+	void randomGoodSwap();
+
+
+	/**
+		while swap done 
+			sort servers by overload
+			choose first server from first half, second server from second half 
+			if swap improving objective function 
+			do swap.
+	*/
 	void RandomizedSwapOptimization();
+
+	/**
+		extensive Solution#swap2good 
+	*/
+	void randomizedSwapOpt1();
+
+	/**
+		
+	*/
+	void randomizedSwapOpt2();
+	
+	
 
 	/**
 		swap OPt helper functions
@@ -104,6 +138,15 @@ public:
 	LoadType trySwap(int d1, int d2) const;
 	bool canSwap(int d1, int d2) const;
 
+	/**
+		@brief choose 2 disks. if they are not on the same server and canSwap => swap them
+	*/
+	void swap2();
+
+	/**
+		@brief swap2 but with additional check for improving objective function
+	*/
+	void swap2good();
 
 
 	std::vector<int> getServersByOverLoad() const;
@@ -160,6 +203,11 @@ public:
 	LoadType getOverLoad() const {
 		return solutionOverLoad;
 	}
+
+	/**
+	get overall expenses
+	*/
+	LoadType getOverallExpenses(int server, int characteristic) const;
 
 private:
 	/**

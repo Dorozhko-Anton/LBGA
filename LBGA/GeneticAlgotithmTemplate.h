@@ -36,6 +36,8 @@ public:
 			mPopulation->shrink();
 			mPopulation->apply(mLocalSearchStrategy);
 			delete newGeneration;
+
+			std::cout << mPopulation->getBest()->getOverLoad() << std::endl;
 		}
 
 	}
@@ -54,6 +56,10 @@ public:
 		mStopStrategy(_stopCriteria),
 		mCrossoverStrategy()
 	{
+	}
+
+	~GeneticAlgorithm() {
+		delete mPopulation;
 	}
 
 private:
