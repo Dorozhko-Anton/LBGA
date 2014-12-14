@@ -5,6 +5,8 @@
 #include <vector>
 #include <algorithm>
 #include <random>
+#include <memory>
+
 #include "Conditions.h"
 #include "RandomNumberGenerator.h"
 
@@ -20,10 +22,6 @@ template <
 class GeneticAlgorithm {
 public:
 	void start() {
-		// generate start mPopulation
-		mPopulation = new Population<T>(mInitialPopulationGenerator.generateInitialPopulation(mPopulationSize));
-		// apply localSearch to mPopulation
-		mPopulation->apply(mLocalSearchStrategy);
 		
 		while (!mStopStrategy.stopCriteria()) {
 			
@@ -37,12 +35,13 @@ public:
 			mPopulation->apply(mLocalSearchStrategy);
 			delete newGeneration;
 
+			
 			std::cout << mPopulation->getBest()->getOverLoad() << std::endl;
 		}
 
 	}
 
-	T* getResult() const {
+	std::shared_ptr<T> getResult() const {
 		return mPopulation->getBest();
 	}
 
@@ -56,6 +55,10 @@ public:
 		mStopStrategy(_stopCriteria),
 		mCrossoverStrategy()
 	{
+		// generate start mPopulation
+		mPopulation = new Population<T>(mInitialPopulationGenerator.generateInitialPopulation(mPopulationSize));
+		// apply localSearch to mPopulation
+		mPopulation->apply(mLocalSearchStrategy);
 	}
 
 	~GeneticAlgorithm() {

@@ -82,7 +82,7 @@ Condition::Condition(std::ifstream &inputFile) {
 }
 
 Condition::~Condition() {
-
+	delete initialSolution;
 }
 
 std::ostream &operator<<(std::ostream &ofs, const Condition &Condition)

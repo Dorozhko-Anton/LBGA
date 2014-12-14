@@ -70,7 +70,7 @@ void testGA() {
 	ga.start();
 	finish = std::clock();
 
-	Solution * res = ga.getResult();
+	Solution * res = &*ga.getResult();
 	res->calculateOverLoad();
 
 	if (ga.getResult()->isFeasible()) {

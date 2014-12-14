@@ -1,6 +1,8 @@
 #ifndef POPULATION_H
 #define POPULATION_H
 #pragma once
+
+#include <memory>
 #include "LocalSearchStrategy.h"
 #include "RandomNumberGenerator.h"
 
@@ -8,12 +10,12 @@ namespace strategies {
 	template <class T>
 	class Population {
 	public:
-		T* getBest() {
+		std::shared_ptr<T> getBest() {
 			sortByOverLoad();
 			return mPopulation[0];
 		}
 
-		std::pair<T*, T*> getCreaturesForCrossover() {
+		std::pair<std::shared_ptr<T>, std::shared_ptr<T>> getCreaturesForCrossover() {
 			sortByOverLoad();
 
 			std::uniform_int_distribution<int> dist(0, mPopulation.size() - 1);
@@ -21,15 +23,15 @@ namespace strategies {
 			int parent1 = dist(GlobalRNG::getInstance().getEngine());
 			int parent2 = dist(GlobalRNG::getInstance().getEngine());
 
-			return std::pair<T*, T*>(mPopulation[parent1], mPopulation[parent2]);
+			return std::pair<std::shared_ptr<T>, std::shared_ptr<T>>(mPopulation[parent1], mPopulation[parent2]);
 		}
 
-		T* getCreatureForMutation();
+		std::shared_ptr<T> getCreatureForMutation();
 
 
 		void apply(LocalSearchStrategy<T>& const lsstrategy) {
-			for (std::vector<T*>::iterator p = mPopulation.begin(); p != mPopulation.end(); p++) {
-				lsstrategy.apply(*p);
+			for (auto p = mPopulation.begin(); p != mPopulation.end(); p++) {
+				lsstrategy.apply(&**p);
 			}
 		};
 
@@ -46,19 +48,28 @@ namespace strategies {
 		}
 
 		Population(std::vector<T*> _population)
-			: mPopulation(_population),
-			mPopulationStartSize(_population.size())
-		{}
+			: mPopulationStartSize(_population.size())
+		{
+			for (auto i = _population.begin(); i != _population.end(); i++)
+			{
+				mPopulation.push_back(std::shared_ptr<T>(*i));
+			}
+		}
+
+		~Population() {
+			mPopulation.clear();
+		}
+
 	private:
 		void sortByOverLoad() {
 			std::sort(mPopulation.begin(), mPopulation.end(),
-				[](T* a, T* b) {
+				[](std::shared_ptr<T> a, std::shared_ptr<T> b) {
 				return (a->getOverLoad() - b->getOverLoad()) < 0;
 			});
 		}
 
 		int mPopulationStartSize;
-		std::vector<T*> mPopulation;
+		std::vector<std::shared_ptr<T>> mPopulation;
 	};
 }
 
