@@ -22,7 +22,7 @@ public:
 	bool operator==(const Solution const & other) const;
 	Solution(const Condition* const _problemConditions, std::ifstream &ifs, bool isInitSolution = false);
 
-	~Solution(){
+	virtual ~Solution(){
 
 	}
 
@@ -32,7 +32,7 @@ public:
 	bool isFeasible() const;
 
 	void calculateEjectionAndInsertionExpenses();
-	void calculateOverLoad();
+	virtual void calculateOverLoad();
 
 	/**
 	  @brief generate population of size population_size
@@ -104,6 +104,10 @@ public:
 	*/
 	void SwapOptimization();
 
+
+	void MoveOptimization();
+	void MoveSwapOptimization();
+
 	/**
 	 make random swap if only it decrease overload
 	*/
@@ -136,7 +140,7 @@ public:
 	*/
 	void swap(int d1, int d2);
 	LoadType trySwap(int d1, int d2) const;
-	bool canSwap(int d1, int d2) const;
+	virtual bool canSwap(int d1, int d2) const;
 
 	/**
 		@brief choose 2 disks. if they are not on the same server and canSwap => swap them
@@ -168,7 +172,7 @@ public:
 
 		but without actually moving disk
 	*/
-	bool canMove(int disk, int server) const;
+	virtual bool canMove(int disk, int server) const;
 
 	/**
 		check ejecting constraints of move
@@ -190,7 +194,7 @@ public:
 		@brief counts hammDist from 1 solution to set of solutions called population
 		       returns smallest dist 
 	*/
-	static int hammDistToPopulation(const Population population, const Solution * const solution);
+	static int hammDistToPopulation(const std::vector<Solution *> population, const Solution * const solution);
 
 	/**
 		@brief computes hammdistance between two solutions
@@ -209,7 +213,9 @@ public:
 	*/
 	LoadType getOverallExpenses(int server, int characteristic) const;
 
-private:
+
+	virtual Solution * clone() const;
+protected:
 	/**
 		@brief problem conditions. see Condition
 	*/

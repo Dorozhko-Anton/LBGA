@@ -54,7 +54,8 @@ public:
 	inline const Solution* getInitSolution() const;
 
 	~Condition();
-private:
+protected:
+
 	/**
 		disk has load by types of Characteristics and time
 	*/
@@ -123,6 +124,13 @@ private:
 		Current disk locations on servers
 	*/
 	Solution* initialSolution;
+
+
+
+	/// ???
+	Condition() {}
+	friend class SolutionWithClasses;
+
 };
 
 

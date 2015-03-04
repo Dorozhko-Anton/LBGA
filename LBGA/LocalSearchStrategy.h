@@ -18,6 +18,7 @@ public:
 		solution->FastRandomizedGreedyOptimization(3);
 	};
 };
+
 template <class T>
 class SwapStrategy : public LocalSearchStrategy<T> {
 public:
@@ -41,5 +42,22 @@ public:
 		solution->randomizedSwapOpt1();
 	};
 };
+//TODO
+template <class T>
+class MoveStrategy : public LocalSearchStrategy<T> {
+public:
+	void apply(T* solution) {
+		solution->MoveOptimization();
+	};
+};
+//TODO
+template <class T>
+class MoveSwapStrategy : public LocalSearchStrategy<T> {
+public:
+	void apply(T* solution) {
+		solution->MoveSwapOptimization();
+	};
+};
+
 
 #endif //LS_STRATEGY_H

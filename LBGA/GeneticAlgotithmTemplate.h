@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <random>
 #include <memory>
+#include <iomanip>
 
 #include "Conditions.h"
 #include "RandomNumberGenerator.h"
@@ -22,7 +23,8 @@ template <
 class GeneticAlgorithm {
 public:
 	void start() {
-		
+		logfstream << "start" << std::endl;
+
 		while (!mStopStrategy.stopCriteria()) {
 			
 			// chose solutions from mPopulation to crossover
@@ -36,7 +38,10 @@ public:
 			delete newGeneration;
 
 			
-			std::cout << mPopulation->getBest()->getOverLoad() << std::endl;
+			logfstream << std::fixed << std::setw(11) << std::setprecision(6)
+				<< mPopulation->getBest()->getOverLoad() << std::endl;
+			std::cout << std::fixed << std::setw(11) << std::setprecision(6)
+				<< mPopulation->getBest()->getOverLoad() << std::endl;
 		}
 
 	}
@@ -63,6 +68,11 @@ public:
 
 	~GeneticAlgorithm() {
 		delete mPopulation;
+		logfstream.close();
+	}
+
+	void setLog(std::string filename) {
+		logfstream = std::ofstream(filename, std::ios::app);
 	}
 
 private:
@@ -73,7 +83,10 @@ private:
 
 
 	Population<T>* mPopulation;
-	int mPopulationSize = 30;
+	int mPopulationSize = 100;
+
+	//
+	std::ofstream logfstream;
 };
 
 #endif //  GAT_H

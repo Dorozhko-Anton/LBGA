@@ -37,6 +37,7 @@ Solution::Solution(const Condition* const _condition, std::ifstream &ifs, bool i
 	this->currentInsertionCost.resize(condition->getNumberOfServers(),
 		std::vector< LoadType >(condition->getNumberOfCharacteristics(), 0));
 
+
 	if (!isInitSolution) {
 		calculateEjectionAndInsertionExpenses();
 	}
@@ -167,14 +168,14 @@ std::vector<Solution *> Solution::RandomPopulationGeneration(const Condition* co
 std::vector<Solution *> Solution::SequentialPopulationGeneration(const Condition* const condition, int population_size)
 {
 	std::vector<Solution *> population(0);
-	population.push_back(new Solution(*condition->getInitSolution()));
+	population.push_back(condition->getInitSolution()->clone());
 
 	int delta = std::min(population_size, condition->getNumberOfDisks() / 10);
 	int attemptsMaxNumber;
 
 	while (population.size() < population_size)
 	{
-		Solution * new_solution = new Solution(*condition->getInitSolution());
+		Solution * new_solution = condition->getInitSolution()->clone();
 
 
 		attemptsMaxNumber = 2 * delta;
@@ -272,11 +273,12 @@ bool Solution::canInsert(int diskToMove, int serverToInsertDisk) const {
 		return true;
 	}
 
-	const Solution* initSolution = condition->getInitSolution();
+	//TODO: change ?
+	/*const Solution* initSolution = condition->getInitSolution();
 
 	if (initSolution->solution[diskToMove] == serverToInsertDisk) {
 		return true;
-	}
+	}*/
 
 
 	for (int c = 0; c < condition->getNumberOfCharacteristics(); c++) {
@@ -308,15 +310,16 @@ struct Move {
 
 	Move(int _d, int _s ) : d(_d), s(_s) {}
 };
+
+
 void Solution::SwapOptimization() {
 
-	//std::vector<std::pair<Move, LoadType>> moves;
-	std::pair<Move, LoadType> bestMove(Move(1, solution[1]), 0);
+	std::pair<std::pair<int,int>, LoadType> bestMove(std::pair<int, int>(1, 1), 0);
 
-	for (int d = 0; d < condition->getNumberOfDisks(); d++) {
-		for (int s = 0; s < condition->getNumberOfServers(); s++) {
-			if (s != solution[d]) {
-				std::pair<Move, LoadType> tmp(Move(d, s), tryMove(d, s));
+	for (int d1 = 0; d1 < condition->getNumberOfDisks(); d1++) {
+		for (int d2 = d1 + 1; d2 < condition->getNumberOfDisks(); d2++) {
+			if (solution[d1] != solution[d2]) {
+				std::pair<std::pair<int, int>, LoadType> tmp(std::pair<int, int>(d1, d2), trySwap(d1, d2));
 
 				if (tmp.second > bestMove.second) {
 					bestMove = tmp;
@@ -325,8 +328,7 @@ void Solution::SwapOptimization() {
 		}
 	}
 
-	move(bestMove.first.d, bestMove.first.s);
-
+	swap(bestMove.first.first, bestMove.first.second);
 	/*int numberOfNotImprovingIterations = 10;
 
 	Solution * champ = new Solution(*this);
@@ -378,6 +380,61 @@ void Solution::SwapOptimization() {
 			numberOfNotImprovingIterations--;
 		}
 	}*/
+}
+
+void Solution::MoveOptimization() {
+	std::pair<Move, LoadType> bestMove(Move(1, solution[1]), 0);
+
+	for (int d = 0; d < condition->getNumberOfDisks(); d++) {
+		for (int s = 0; s < condition->getNumberOfServers(); s++) {
+			if (s != solution[d]) {
+				std::pair<Move, LoadType> tmp(Move(d, s), tryMove(d, s));
+
+				if (tmp.second > bestMove.second) {
+					bestMove = tmp;
+				}
+			}
+		}
+	}
+
+	move(bestMove.first.d, bestMove.first.s);
+}
+
+void Solution::MoveSwapOptimization() {
+	std::pair<Move, LoadType> bestMove(Move(1, solution[1]), 0);
+
+	for (int d = 0; d < condition->getNumberOfDisks(); d++) {
+		for (int s = 0; s < condition->getNumberOfServers(); s++) {
+			if (s != solution[d]) {
+				std::pair<Move, LoadType> tmp(Move(d, s), tryMove(d, s));
+
+				if (tmp.second > bestMove.second) {
+					bestMove = tmp;
+				}
+			}
+		}
+	}
+
+	std::pair<std::pair<int, int>, LoadType> bestSwap(std::pair<int, int>(1, 1), 0);
+
+	for (int d1 = 0; d1 < condition->getNumberOfDisks(); d1++) {
+		for (int d2 = d1 + 1; d2 < condition->getNumberOfDisks(); d2++) {
+			if (solution[d1] != solution[d2]) {
+				std::pair<std::pair<int, int>, LoadType> tmp(std::pair<int, int>(d1, d2), trySwap(d1, d2));
+
+				if (tmp.second > bestSwap.second) {
+					bestSwap = tmp;
+				}
+			}
+		}
+	}
+
+	if (bestMove.second > bestSwap.second) {
+		move(bestMove.first.d, bestMove.first.s);
+	}
+	else {
+		swap(bestSwap.first.first, bestSwap.first.second);
+	}
 }
 
 void Solution::RandomizedSwapOptimization() {
@@ -497,7 +554,7 @@ std::vector<Solution*> Solution::pathRelinking(Solution * other) const
 {
 	std::vector<Solution *> svec;
 
-	Solution * s = new Solution(*this);
+	Solution * s = this->clone();
 
 	/*for (int i = 0; i < condition->getNumberOfDisks(); i++) {
 		if (solution[i] != other->solution[i]) {
@@ -521,7 +578,7 @@ std::vector<Solution*> Solution::pathRelinking(Solution * other) const
 	for (int i = 0; i < diff.size(); i++) {
 			if (canMove(i, other->solution[i])) {
 				s->move(i, other->solution[i]);
-				Solution * tmp = new Solution(*s);
+				Solution * tmp = s->clone();
 				tmp->FastRandomizedGreedyOptimization(3);
 				svec.push_back(tmp);
 			}
@@ -542,6 +599,9 @@ std::vector<Solution*> Solution::pathRelinking(Solution * other) const
 	return std::move(svec);
 }
 
+Solution * Solution::clone() const {
+	return new Solution(*this);
+}
 
 void Solution::localSearch()
 {
