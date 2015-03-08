@@ -5,28 +5,30 @@
 template <class T>
 class BreedingStrategy {
 public:
-	std::vector<T*> generateInitialPopulation(int size) {
-		return T::SequentialPopulationGeneration(conditions, size);
+	std::vector<T*> generateInitialPopulation() {
+		return T::SequentialPopulationGeneration(_conditions, _size);
 	};
-	BreedingStrategy(const Condition* _conditions) {
-		conditions = _conditions;
-	};
+	BreedingStrategy(const Condition* conditions, int size) 
+		: _conditions(conditions), _size(size)
+	{};
 private:
-	const Condition* conditions;
+	const Condition* _conditions;
+	int _size;
 };
 
 
 template <class T>
 class RandomBreedingStrategy {
 public:
-	std::vector<T*> generateInitialPopulation(int size) {
-		return T::RandomPopulationGeneration(conditions, size);
+	std::vector<T*> generateInitialPopulation() {
+		return T::RandomPopulationGeneration(_conditions, _size);
 	};
-	RandomBreedingStrategy(const Condition* _conditions) {
-		conditions = _conditions;
-	};
+	RandomBreedingStrategy(const Condition* conditions, int size)
+		: _conditions(conditions), _size(size)
+	{};
 private:
-	const Condition* conditions;
+	const Condition* _conditions;
+	int _size;
 };
 
 

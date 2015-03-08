@@ -24,6 +24,7 @@
 #include "ConditionsWithClasses.h"
 
 
+const int RECOMMENDED_POPULATION_SIZE = 100;
 
 void checkSolution(std::string conditionFileName, std::string solutionFileName) {
 	std::ifstream conditionFile(conditionFileName);
@@ -53,8 +54,8 @@ void testGA() {
 	Condition cond(dataFile);
 
 
-	BreedingStrategy<Solution> bstrategy(&cond);
-	RandomBreedingStrategy<Solution> rbstrategy(&cond);
+	BreedingStrategy<Solution> bstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
+	RandomBreedingStrategy<Solution> rbstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
 
 	IterationNumberStopStrategy<Solution> sstrategy(100);
 
@@ -119,8 +120,8 @@ void testGAwithMove() {
 	Condition cond(dataFile);
 
 
-	BreedingStrategy<Solution> bstrategy(&cond);
-	RandomBreedingStrategy<Solution> rbstrategy(&cond);
+	BreedingStrategy<Solution> bstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
+	RandomBreedingStrategy<Solution> rbstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
 
 	IterationNumberStopStrategy<Solution> sstrategy(100);
 
@@ -184,8 +185,8 @@ void testGAwithSwap() {
 	Condition cond(dataFile);
 
 
-	BreedingStrategy<Solution> bstrategy(&cond);
-	RandomBreedingStrategy<Solution> rbstrategy(&cond);
+	BreedingStrategy<Solution> bstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
+	RandomBreedingStrategy<Solution> rbstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
 
 	IterationNumberStopStrategy<Solution> sstrategy(100);
 
@@ -249,8 +250,8 @@ void testGAWithViolations() {
 	ConditionWithPenalty cond(dataFile);
 
 
-	BreedingStrategy<Solution> bstrategy(&cond);
-	RandomBreedingStrategy<Solution> rbstrategy(&cond);
+	BreedingStrategy<Solution> bstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
+	RandomBreedingStrategy<Solution> rbstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
 
 	IterationNumberStopStrategy<Solution> sstrategy(100);
 
@@ -341,8 +342,8 @@ void testGAwithClasses() {
 		exit(1);
 	}
 
-	BreedingStrategy<Solution> bstrategy(&cond);
-	RandomBreedingStrategy<Solution> rbstrategy(&cond);
+	BreedingStrategy<Solution> bstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
+	RandomBreedingStrategy<Solution> rbstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
 
 	IterationNumberStopStrategy<Solution> sstrategy(100);
 

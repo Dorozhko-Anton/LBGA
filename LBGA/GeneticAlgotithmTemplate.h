@@ -61,7 +61,7 @@ public:
 		mCrossoverStrategy()
 	{
 		// generate start mPopulation
-		mPopulation = new Population<T>(mInitialPopulationGenerator.generateInitialPopulation(mPopulationSize));
+		mPopulation = new Population<T>(mInitialPopulationGenerator.generateInitialPopulation());
 		// apply localSearch to mPopulation
 		mPopulation->apply(mLocalSearchStrategy);
 	}
@@ -83,7 +83,7 @@ private:
 
 
 	Population<T>* mPopulation;
-	int mPopulationSize = 100;
+	
 
 	//
 	std::ofstream logfstream;
