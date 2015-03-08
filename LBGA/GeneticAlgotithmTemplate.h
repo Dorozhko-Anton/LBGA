@@ -21,24 +21,49 @@ template <
 	template<typename T> class CrossoverStrategy
 >
 class GeneticAlgorithm {
+
+private:
+	void generateInitialPopulation() {
+		// generate start mPopulation
+		mPopulation = new Population<T>(mInitialPopulationGenerator.generateInitialPopulation());
+		// apply localSearch to mPopulation
+		mPopulation->apply(mLocalSearchStrategy);
+	}
+	void crossoverStage(){
+		// chose solutions from mPopulation to crossover
+		auto parents = mPopulation->getCreaturesForCrossover();
+		std::shared_ptr<Population<T>> newGeneration(new Population<T>(mCrossoverStrategy.crossover(parents)));
+			
+		
+		newGeneration->apply(mLocalSearchStrategy);
+
+		mPopulation->add(newGeneration);
+		//mPopulation->apply(mLocalSearchStrategy);
+		
+	}
+	void mutationStage() {
+
+	}
+	void selection() {
+		mPopulation->shrink();
+	}
+
 public:
+
+
 	void start() {
 		logfstream << "start" << std::endl;
 
+		generateInitialPopulation();
+
 		while (!mStopStrategy.stopCriteria()) {
 			
-			// chose solutions from mPopulation to crossover
-			auto parents = mPopulation->getCreaturesForCrossover();
-			Population<T>* newGeneration = new Population<T>(mCrossoverStrategy.crossover(parents));
-			newGeneration->apply(mLocalSearchStrategy);
-			
-			mPopulation->add(newGeneration);
-			mPopulation->shrink();
-			mPopulation->apply(mLocalSearchStrategy);
-			delete newGeneration;
+			crossoverStage();
+			mutationStage();
 
+			selection();
 			
-			logfstream << std::fixed << std::setw(11) << std::setprecision(6)
+        	logfstream << std::fixed << std::setw(11) << std::setprecision(6)
 				<< mPopulation->getBest()->getOverLoad() << std::endl;
 			std::cout << std::fixed << std::setw(11) << std::setprecision(6)
 				<< mPopulation->getBest()->getOverLoad() << std::endl;
@@ -51,7 +76,6 @@ public:
 	}
 
 	GeneticAlgorithm(
-		const Condition* const conditions,
 		InitialPopulationGenerator<T> _generator,
 		StopStrategy<T> _stopCriteria
 	) :
@@ -59,12 +83,7 @@ public:
 		mLocalSearchStrategy(),
 		mStopStrategy(_stopCriteria),
 		mCrossoverStrategy()
-	{
-		// generate start mPopulation
-		mPopulation = new Population<T>(mInitialPopulationGenerator.generateInitialPopulation());
-		// apply localSearch to mPopulation
-		mPopulation->apply(mLocalSearchStrategy);
-	}
+	{}
 
 	~GeneticAlgorithm() {
 		delete mPopulation;

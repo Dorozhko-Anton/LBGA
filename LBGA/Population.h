@@ -35,7 +35,7 @@ namespace strategies {
 			}
 		};
 
-		void add(Population<T>* other) {
+		void add(std::shared_ptr<Population<T>> other) {
 			mPopulation.insert(mPopulation.end(), other->mPopulation.begin(), other->mPopulation.end());
 
 			mPopulation.erase(std::unique(mPopulation.begin(), mPopulation.end()), mPopulation.end());
