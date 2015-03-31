@@ -35,6 +35,13 @@ namespace strategies {
 			}
 		};
 
+		//HACK
+		void revalidate() {
+			for (auto p = mPopulation.begin(); p != mPopulation.end(); p++) {
+				(*p)->calculateOverLoad();
+			}
+		};
+
 		void add(std::shared_ptr<Population<T>> other) {
 			mPopulation.insert(mPopulation.end(), other->mPopulation.begin(), other->mPopulation.end());
 

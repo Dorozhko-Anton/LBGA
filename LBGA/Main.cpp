@@ -22,9 +22,10 @@
 #include "StopStrategy.h"
 
 #include "ConditionsWithClasses.h"
+#include "ConditionsWithPenalty.h"
 
 
-const int RECOMMENDED_POPULATION_SIZE = 10;
+const int RECOMMENDED_POPULATION_SIZE = 60;
 
 void checkSolution(std::string conditionFileName, std::string solutionFileName) {
 	std::ifstream conditionFile(conditionFileName);
@@ -57,7 +58,7 @@ void testGA() {
 	BreedingStrategy<Solution> bstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
 	RandomBreedingStrategy<Solution> rbstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
 
-	IterationNumberStopStrategy<Solution> sstrategy(10);
+	IterationNumberStopStrategy<Solution> sstrategy(10000);
 
 	GeneticAlgorithm
 		<Solution,
@@ -243,69 +244,72 @@ void testGA() {
 //}
 //
 //
-//void testGAWithViolations() {
-//	//std::ifstream dataFile("data_700_150.txt");
-//	std::ifstream dataFile("inst1.txt");
-//
-//	ConditionWithPenalty cond(dataFile);
-//
-//
-//	BreedingStrategy<Solution> bstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
-//	RandomBreedingStrategy<Solution> rbstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
-//
-//	IterationNumberStopStrategy<Solution> sstrategy(100);
-//
-//	GeneticAlgorithm
-//		<Solution,
-//		strategies::Population,
-//		BreedingStrategy,
-//		//RandomizedSwapStrategy,
-//		MoveSwapStrategy,
-//		IterationNumberStopStrategy,
-//		SimpleCrossoverStrategy
-//		>
-//		ga(&cond, bstrategy, sstrategy);
-//
-//	ga.setLog("output.txt");
-//
-//	std::clock_t start, finish;
-//	start = std::clock();
-//	ga.start();
-//	finish = std::clock();
-//
-//	Solution * res = &*ga.getResult();
-//	res->calculateOverLoad();
-//
-//	if (ga.getResult()->isFeasible()) {
-//		std::cout << "OK" << std::endl;
-//	}
-//	else {
-//		std::cout << "BAD" << std::endl;
-//	}
-//	std::cout << ga.getResult()->getOverLoad() << std::endl;
-//
-//	for (int i = 0; i < 10; i++) {
-//		ga.getResult()->LocalOptAsAssignmentProblem();
-//		std::cout << i << ": " << ga.getResult()->isFeasible() << ", " << ga.getResult()->getOverLoad() << std::endl;
-//	}
-//	std::cout << "time: " << (finish - start) / CLOCKS_PER_SEC << std::endl;
-//	std::cout << *ga.getResult() << std::endl;
-//
-//
-//	if (ga.getResult()->isFeasible()) {
-//
-//		std::stringstream outputStringStream;
-//		outputStringStream << ga.getResult()->getOverLoad() << ".txt";
-//		std::cout << "Writing result to " << outputStringStream.str() << std::endl;
-//
-//		std::ofstream result(outputStringStream.str());
-//		result << *ga.getResult() << std::endl;
-//
-//	}
-//	else {
-//		std::cout << "Result is not feasible" << std::endl;
-//	}
-//}
+void testGAWithViolations() {
+	//std::ifstream dataFile("data_700_150.txt");
+	std::ifstream dataFile("inst1.txt");
+
+	ConditionWithPenalty cond(dataFile);
+
+
+	BreedingStrategy<Solution> bstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
+	RandomBreedingStrategy<Solution> rbstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
+
+	IterationNumberStopStrategy<Solution> sstrategy(50);
+
+	IterationNumberStopStrategyWithPenalty<Solution> growPenalty(&cond, 50, 0, 1000);
+
+	GeneticAlgorithm
+		<Solution,
+		strategies::Population,
+		BreedingStrategy,
+		//RandomizedSwapStrategy,
+		MoveSwapStrategy,
+		//IterationNumberStopStrategy,
+		IterationNumberStopStrategyWithPenalty,
+		SimpleCrossoverStrategy
+		>
+		ga(bstrategy, growPenalty);
+
+	ga.setLog("output.txt");
+
+	std::clock_t start, finish;
+	start = std::clock();
+	ga.start();
+	finish = std::clock();
+
+	Solution * res = &*ga.getResult();
+	res->calculateOverLoad();
+
+	if (ga.getResult()->isFeasible()) {
+		std::cout << "OK" << std::endl;
+	}
+	else {
+		std::cout << "BAD" << std::endl;
+	}
+	std::cout << ga.getResult()->getOverLoad() << std::endl;
+
+	/*for (int i = 0; i < 10; i++) {
+		ga.getResult()->LocalOptAsAssignmentProblem();
+		std::cout << i << ": " << ga.getResult()->isFeasible() << ", " << ga.getResult()->getOverLoad() << std::endl;
+	}*/
+	std::cout << "time: " << (finish - start) / CLOCKS_PER_SEC << std::endl;
+	std::cout << *ga.getResult() << std::endl;
+
+
+	if (ga.getResult()->isFeasible()) {
+
+		std::stringstream outputStringStream;
+		outputStringStream << ga.getResult()->getOverLoad() << ".txt";
+		std::cout << "Writing result to " << outputStringStream.str() << std::endl;
+
+		std::ofstream result(outputStringStream.str());
+		result << *ga.getResult() << std::endl;
+
+	}
+	else {
+		std::cout << "Result is not feasible" << std::endl;
+	}
+}
 void main() 
 {
 	//_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE); // enable file output
@@ -314,11 +318,11 @@ void main()
 	//_CrtMemCheckpoint(&_ms);
 	//
 	//checkSolution("inst1.txt", "champ.txt");
-	testGA();
+	//testGA();
 	//testGAwithMove();
 	//testGAwithSwap();
 	//testGAwithClasses();
-	//testGAWithViolations();
+	testGAWithViolations();
 	//_CrtMemDumpAllObjectsSince(&_ms);
 }
 

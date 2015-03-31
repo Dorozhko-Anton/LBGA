@@ -139,7 +139,7 @@ public:
 		swap OPt helper functions
 	*/
 	void swap(int d1, int d2);
-	LoadType trySwap(int d1, int d2) const;
+	virtual LoadType trySwap(int d1, int d2) const;
 	virtual bool canSwap(int d1, int d2) const;
 
 	/**
@@ -155,7 +155,7 @@ public:
 
 	std::vector<int> getServersByOverLoad() const;
 	std::vector<int> chooseRandomDisksFromServer(int amount, int server) const;
-	LoadType tryMove(int disk, int server) const;
+	virtual LoadType tryMove(int disk, int server) const;
 
 	/**
 		chose disk uniformely

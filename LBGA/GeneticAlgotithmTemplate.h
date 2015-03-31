@@ -58,6 +58,8 @@ public:
 
 		while (!mStopStrategy.stopCriteria()) {
 			
+			mPopulation->revalidate();
+
 			crossoverStage();
 			mutationStage();
 

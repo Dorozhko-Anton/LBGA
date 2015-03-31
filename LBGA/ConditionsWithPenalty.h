@@ -4,7 +4,6 @@
 #pragma once
 
 #include "Conditions.h"
-#include "Solution.h"
 #include "SolutionWithPenalty.h"
 
 class SolutionWithPenalty;
@@ -86,8 +85,9 @@ public:
 			}
 		}
 	
-		Solution* solution = new Solution(this, inputFile, true);
+		SolutionWithPenalty* solution = new SolutionWithPenalty(this, inputFile, true);
 
+		
 		initialSolution = solution;
 	}
 

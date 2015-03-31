@@ -131,6 +131,16 @@ protected:
 	Condition() {}
 	friend class SolutionWithClasses;
 
+	//hACK
+	LoadType penalty = 0;
+	public:
+		void setPenalty(LoadType value) {
+			penalty = value;
+		}
+		LoadType getPenalty() const {
+			return penalty;
+		}
+
 };
 
 
