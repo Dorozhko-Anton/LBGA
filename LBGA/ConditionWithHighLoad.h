@@ -1,10 +1,21 @@
+#ifndef _CONDITION_WITH_HIGH_LOAD_H
+#define _CONDITION_WITH_HIGH_LOAD_H
+
 #include "Conditions.h"
 
-#include <fstream>
-#include <iostream>
 
-Condition::Condition(std::ifstream &inputFile) {
+class ConditionWithHighLoad : public Condition
+{
+public:
+	ConditionWithHighLoad(std::ifstream& inputFile);
+	~ConditionWithHighLoad();
 
+private:
+
+};
+
+ConditionWithHighLoad::ConditionWithHighLoad(std::ifstream& inputFile)
+{
 	double tmp;
 	inputFile >> tmp;
 	numberOfDisks = static_cast<int> (tmp);
@@ -28,6 +39,10 @@ Condition::Condition(std::ifstream &inputFile) {
 			inputFile >> serverLoadLimits[s][c];
 		}
 	}
+
+	// HACK transport limits in file are common, and I used sum of ins end ejection limits
+	// so read limits in insert and null eject to achieve equivalence
+
 	// insertLimits
 	insertionLimits.resize(numberOfServers,
 		std::vector<LoadType>(numberOfCharacteristics, 0));
@@ -41,7 +56,7 @@ Condition::Condition(std::ifstream &inputFile) {
 		std::vector<LoadType>(numberOfCharacteristics, 0));
 	for (int s = 0; s < numberOfServers; s++) {
 		for (int c = 0; c < numberOfCharacteristics; c++) {
-			inputFile >> ejectionLimits[s][c];
+			ejectionLimits[s][c] = 0;
 		}
 	}
 	// discLoad
@@ -81,58 +96,10 @@ Condition::Condition(std::ifstream &inputFile) {
 	initialSolution = new Solution(this, inputFile, true);
 }
 
-Condition::~Condition() {
-	delete initialSolution;
+ConditionWithHighLoad::~ConditionWithHighLoad() {
+	
 }
 
-std::ostream &operator<<(std::ostream &ofs, const Condition &Condition)
-{
-	ofs << Condition.getNumberOfDisks() << std::endl;
-	ofs << Condition.getNumberOfServers() << std::endl;
-	ofs << Condition.getNumberOfCharacteristics() << std::endl;
-	ofs << Condition.getTimePeriod() << std::endl;
-	for (int s = 0; s < Condition.getNumberOfServers(); s++) {
-		for (int c = 0; c < Condition.getNumberOfCharacteristics(); c++) {
-			ofs << Condition.getServerLoadLimits(s, c) << std::endl;
-		}
-	}
-	for (int s = 0; s < Condition.getNumberOfServers(); s++) {
-		for (int c = 0; c < Condition.getNumberOfCharacteristics(); c++) {
-			ofs << Condition.getInsertionLimits(s, c) << std::endl;
-		}
-	}
-	for (int s = 0; s < Condition.getNumberOfServers(); s++) {
-		for (int c = 0; c < Condition.getNumberOfCharacteristics(); c++) {
-			ofs << Condition.getEjectionLimits(s, c) << std::endl;
-		}
-	}
-
-	for (int d = 0; d < Condition.getNumberOfDisks(); d++) {
-		for (int c = 0; c < Condition.getNumberOfCharacteristics(); c++) {
-			for (int t = 0; t < Condition.getTimePeriod(); t++) {
-				ofs << Condition.getDiskLoad(d, c, t) << std::endl;
-			}
-		}
-	}
-
-	for (int d = 0; d < Condition.getNumberOfDisks(); d++) {
-		for (int s = 0; s < Condition.getNumberOfServers(); s++) {
-			for (int c = 0; c < Condition.getNumberOfCharacteristics(); c++) {
-				ofs << Condition.getInsertionCost(d, s, c) << std::endl;
-			}
-		}
-	}
-	for (int d = 0; d < Condition.getNumberOfDisks(); d++) {
-		for (int s = 0; s < Condition.getNumberOfServers(); s++) {
-			for (int c = 0; c < Condition.getNumberOfCharacteristics(); c++) {
-				ofs << Condition.getEjectionCost(d, s, c) << std::endl;
-			}
-		}
-	}
 
 
-	ofs << Condition.getInitSolution();
-
-	return ofs;
-
-}
+#endif // _CONDITION_WITH_HIGH_LOAD_H

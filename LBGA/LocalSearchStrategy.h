@@ -59,5 +59,13 @@ public:
 	};
 };
 
+template <class T>
+class LinKernighanStrategy : public LocalSearchStrategy<T> {
+public:
+	void apply(T* solution) {
+		solution->LinKernighan(50);
+	};
+};
+
 
 #endif //LS_STRATEGY_H

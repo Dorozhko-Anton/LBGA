@@ -19,7 +19,7 @@ public:
 
 	}
 
-	bool operator==(const Solution const & other) const;
+	bool operator==(const Solution & other) const;
 	Solution(const Condition* const _problemConditions, std::ifstream &ifs, bool isInitSolution = false);
 
 	virtual ~Solution(){
@@ -95,6 +95,9 @@ public:
 
 	*/
 	void FastRandomizedGreedyOptimization(int numberOfDisks);
+    
+    std::pair<int, int> chooseMove();
+    void LinKernighan(int numberOfSteps);
 	
 	/**
 		swap neighbourhood

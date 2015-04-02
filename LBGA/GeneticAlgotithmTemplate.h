@@ -27,7 +27,7 @@ private:
 		// generate start mPopulation
 		mPopulation = new Population<T>(mInitialPopulationGenerator.generateInitialPopulation());
 		// apply localSearch to mPopulation
-		mPopulation->apply(mLocalSearchStrategy);
+		//mPopulation->apply(mLocalSearchStrategy);
 	}
 	void crossoverStage(){
 		// chose solutions from mPopulation to crossover
@@ -58,7 +58,7 @@ public:
 
 		while (!mStopStrategy.stopCriteria()) {
 			
-			mPopulation->revalidate();
+			//mPopulation->revalidate();
 
 			crossoverStage();
 			mutationStage();
@@ -93,7 +93,7 @@ public:
 	}
 
 	void setLog(std::string filename) {
-		logfstream = std::ofstream(filename, std::ios::app);
+		logfstream.open(filename, std::ios::app);
 	}
 
 private:

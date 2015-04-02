@@ -29,7 +29,7 @@ namespace strategies {
 		std::shared_ptr<T> getCreatureForMutation();
 
 
-		void apply(LocalSearchStrategy<T>& const lsstrategy) {
+		void apply(LocalSearchStrategy<T>& lsstrategy) {
 			for (auto p = mPopulation.begin(); p != mPopulation.end(); p++) {
 				lsstrategy.apply(&**p);
 			}
