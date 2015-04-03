@@ -579,7 +579,7 @@ std::vector<Solution*> Solution::pathRelinking(Solution * other) const
 			if (canMove(i, other->solution[i])) {
 				s->move(i, other->solution[i]);
 				Solution * tmp = s->clone();
-				tmp->FastRandomizedGreedyOptimization(3);
+				//tmp->FastRandomizedGreedyOptimization(3);
 				svec.push_back(tmp);
 			}
 	}

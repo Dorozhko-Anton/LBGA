@@ -67,8 +67,8 @@ public:
 			
         	logfstream << std::fixed << std::setw(11) << std::setprecision(6)
 				<< mPopulation->getBest()->getOverLoad() << std::endl;
-			std::cout << std::fixed << std::setw(11) << std::setprecision(6)
-				<< mPopulation->getBest()->getOverLoad() << std::endl;
+			//std::cout << std::fixed << std::setw(11) << std::setprecision(6)
+			//	<< mPopulation->getBest()->getOverLoad() << std::endl;
 		}
 
 	}
