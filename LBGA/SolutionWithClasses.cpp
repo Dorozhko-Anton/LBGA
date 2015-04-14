@@ -67,7 +67,6 @@ bool SolutionWithClasses::CheckCompatibility() {
 					}
 				}
 				if (overallEjectionCost > condition->getOverallLimits(i, r)) {
-
 					for (int d = 0; d < numberOfDisks; d++) {
 						if (diskClasses[d] == LoadClass::Red && solution[d] == i) {
 							std::cout << "Could not dedicate server " << i << " with red disk " << d << std::endl;
@@ -150,7 +149,7 @@ std::vector<int> SolutionWithClasses::GetRedServersDisks(int server) {
 	std::vector<int> result(0);
 
 	for (int d = 0; d < condition->getNumberOfDisks(); d++) {
-		if (solution[d] == server && diskClasses[d] != LoadClass::Red) {
+		if ((solution[d] == server) && (diskClasses[d] != LoadClass::Red)) {
 			result.push_back(d);
 		}
 	}

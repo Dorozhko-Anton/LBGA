@@ -53,6 +53,9 @@ public:
 
 	inline const Solution* getInitSolution() const;
 
+	virtual void setIndexCorrection(int idx) { index_correction = idx; };
+	virtual int getIndexCorrection()  const { return index_correction; };
+
 	~Condition();
 protected:
 
@@ -141,6 +144,7 @@ protected:
 			return penalty;
 		}
 
+	int index_correction = 1;
 };
 
 

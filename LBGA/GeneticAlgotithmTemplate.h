@@ -54,6 +54,8 @@ public:
 	void start() {
 		logfstream << "start" << std::endl;
 
+		mStopStrategy.initialize();
+
 		generateInitialPopulation();
 
 		while (!mStopStrategy.stopCriteria()) {
@@ -67,8 +69,8 @@ public:
 			
         	logfstream << std::fixed << std::setw(11) << std::setprecision(6)
 				<< mPopulation->getBest()->getOverLoad() << std::endl;
-			std::cout << std::fixed << std::setw(11) << std::setprecision(6)
-				<< mPopulation->getBest()->getOverLoad() << std::endl;
+			/*std::cout << std::fixed << std::setw(11) << std::setprecision(6)
+				<< mPopulation->getBest()->getOverLoad() << std::endl;*/
 		}
 
 	}
@@ -88,8 +90,12 @@ public:
 	{}
 
 	~GeneticAlgorithm() {
-		delete mPopulation;
+		clear();
 		logfstream.close();
+	}
+
+	void clear() {
+		delete mPopulation;
 	}
 
 	void setLog(std::string filename) {

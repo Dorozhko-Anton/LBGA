@@ -42,7 +42,7 @@ public:
 		solution->randomizedSwapOpt1();
 	};
 };
-//TODO
+
 template <class T>
 class MoveStrategy : public LocalSearchStrategy<T> {
 public:
@@ -50,7 +50,7 @@ public:
 		solution->MoveOptimization();
 	};
 };
-//TODO
+
 template <class T>
 class MoveSwapStrategy : public LocalSearchStrategy<T> {
 public:
@@ -58,6 +58,27 @@ public:
 		solution->MoveSwapOptimization();
 	};
 };
+
+
+
+
+template <class T>
+class RandomizedMoveSwapStrategy : public LocalSearchStrategy<T> {
+public:
+	void apply(T* solution) {
+		solution->RandomizedMoveSwapOptimization();
+	};
+};
+
+template <class T>
+class LinKernighanStrategy : public LocalSearchStrategy<T> {
+public:
+	void apply(T* solution) {
+		solution->LinKernighan(50);
+	};
+};
+
+
 
 
 #endif //LS_STRATEGY_H

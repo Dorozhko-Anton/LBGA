@@ -43,7 +43,7 @@ public:
 	}
 
 private:
-	const LoadType PENALTY_CONSTANT = 10000;
+	const LoadType PENALTY_CONSTANT = 100000;
 	enum LoadClass { Green, Yellow, Red };
 	/**
 		@brief disk classes : small(green), potentially big(yellow), big(red)
@@ -60,6 +60,8 @@ private:
 	std::vector<int> GetRedServersDisks(int server);
 
 	void Move(int disk);
+
+	//void calculateViolations();
 };
 
 

@@ -6,6 +6,7 @@ template <class T>
 class StopStrategy {
 public:
 	virtual bool stopCriteria() = 0;
+	virtual void initialize() {};
 };
 
 
@@ -15,6 +16,7 @@ public:
 	bool stopCriteria() {
 		return numberOfIterations-- == 0;
 	}
+
 
 	IterationNumberStopStrategy(int _number) : numberOfIterations(_number) {}
 private:

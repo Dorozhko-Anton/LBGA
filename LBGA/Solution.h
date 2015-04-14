@@ -213,8 +213,13 @@ public:
 	*/
 	LoadType getOverallExpenses(int server, int characteristic) const;
 
-
+	std::pair<int, int> chooseMove();
+	void LinKernighan(int numberOfSteps);
 	virtual Solution * clone() const;
+	std::vector<int> getSolutionRepresentation() const;
+
+	void RandomizedMoveSwapOptimization();
+	int getIndexCorrection() const;
 protected:
 	/**
 		@brief problem conditions. see Condition

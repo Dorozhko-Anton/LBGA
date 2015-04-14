@@ -1,8 +1,11 @@
 #include <algorithm>
 #include <random>
 #include <numeric> // iota
+#include <memory>
 #include "Solution.h"
 #include "RandomNumberGenerator.h"
+
+//#define CORRECTIION 0
 
 std::ostream &operator<<(std::ostream &ofs, const Solution &solution)
 {
@@ -11,11 +14,14 @@ std::ostream &operator<<(std::ostream &ofs, const Solution &solution)
 		it != solution.solution.end();
 		it++)
 	{
-		ofs << *it + 1 << std::endl;
+		ofs << *it + solution.getIndexCorrection() << std::endl;
 		// in real servers are numbered 1..numberOfservers;
 	}
 	return ofs;
 }
+
+int Solution::getIndexCorrection() const 
+{ return condition->getIndexCorrection(); }
 
 
 Solution::Solution(const Condition* const _condition, std::ifstream &ifs, bool isInitSolution)
@@ -25,7 +31,7 @@ Solution::Solution(const Condition* const _condition, std::ifstream &ifs, bool i
 	for (int i = 0; i < condition->getNumberOfDisks(); i++) {
 		double s = 0;
 		ifs >> s;
-		solution.push_back(static_cast<int>(s - 1));
+		solution.push_back(static_cast<int>(s - getIndexCorrection()));
 	}
 	this->serversLoads.resize(condition->getNumberOfServers(),
 		std::vector< std::vector< LoadType > >(condition->getNumberOfCharacteristics(),
@@ -179,7 +185,7 @@ std::vector<Solution *> Solution::SequentialPopulationGeneration(const Condition
 
 
 		attemptsMaxNumber = 2 * delta;
-		while (hammDistToPopulation(population, new_solution) < delta && attemptsMaxNumber-- > 0)
+		while (/*hammDistToPopulation(population, new_solution) < delta &&*/ attemptsMaxNumber-- > 0)
 		{
 			new_solution->randomMove();
 		}
@@ -291,6 +297,120 @@ bool Solution::canInsert(int diskToMove, int serverToInsertDisk) const {
 	return true;
 }
 
+struct Move {
+	int d;
+	int s;
+
+	Move(int _d, int _s) : d(_d), s(_s) {}
+};
+
+
+std::pair<int, int> Solution::chooseMove() {
+	//    std::pair<Move, LoadType> bestMove(Move(1, solution[1]), 0);
+
+	//	for (int d = 0; d < condition->getNumberOfDisks(); d++) {
+	//		for (int s = 0; s < condition->getNumberOfServers(); s++) {
+	//			if (s != solution[d]) {
+	//				std::pair<Move, LoadType> tmp(Move(d, s), tryMove(d, s));
+
+	//				if (tmp.second > bestMove.second) {
+	//					bestMove = tmp;
+	//				}
+	//			}
+	//		}
+	//	}
+
+	//	return std::make_pair(bestMove.first.d, bestMove.first.s);
+
+	//============    
+	    /*std::uniform_int_distribution<> disk_dist(0, solution.size() - 1);
+		std::uniform_int_distribution<> server_dist(0, condition->getNumberOfServers() - 1);
+		auto rndengine = GlobalRNG::getInstance().getEngine();
+
+	    std::pair<Move, LoadType> best(std::make_pair(Move(0, solution[0]), 0));
+
+	    for (int i = 0; i < condition->getNumberOfServers(); ++i) {
+
+	        int disk = disk_dist(rndengine);
+	        int server = server_dist(rndengine);
+
+	        LoadType win = tryMove(disk, server);
+	        std::cout << "win? : " << win << std::endl;
+
+	        if (win > best.second || (solution[best.first.d] == best.first.s)) {
+	            best.first = Move(disk, server);
+	            best.second = win;
+	        }
+	    }
+	    return std::make_pair(best.first.d, best.first.s);*/
+	//=================
+
+	//std::vector<int> serversByOverload = getServersByOverLoad();
+	//int mostOverloadedServer = serversByOverload[0];
+
+	//std::vector<int> disks = chooseRandomDisksFromServer(3, mostOverloadedServer);
+
+	//LoadType maxWin = 0;
+	//int diskToMove = 0, serverForDisk = 0;
+	//for (std::vector<int>::iterator disk = disks.begin(); disk != disks.end(); disk++)
+	//{
+	//	for (int s = serversByOverload.size() - 1; s >= serversByOverload.size() / 2; s--)
+	//	{
+	//		LoadType overLoadDecrease = tryMove(*disk, serversByOverload[s]);
+	//		if (overLoadDecrease > maxWin) {
+	//			diskToMove = *disk;
+	//			serverForDisk = serversByOverload[s];
+	//			maxWin = overLoadDecrease;
+	//		}
+	//	}
+	//}
+
+	//return std::make_pair(diskToMove, serverForDisk);
+		//================================================
+
+		std::uniform_int_distribution<> disk_dist(0, solution.size() - 1);
+		std::uniform_int_distribution<> server_dist(0, condition->getNumberOfServers() - 1);
+
+		int diskToMove = disk_dist(GlobalRNG::getInstance().getEngine());
+		int serverForDisk = server_dist(GlobalRNG::getInstance().getEngine());
+
+		if (canMove(diskToMove, serverForDisk)) {
+			return std::make_pair(diskToMove, serverForDisk);
+		}
+		return std::make_pair(0, 0);
+
+}
+void Solution::LinKernighan(int numberOfSteps) {
+	std::shared_ptr<Solution> current(this->clone());
+
+	std::vector<std::pair<int, int>> path;
+	std::vector<std::pair<int, LoadType>> objectiveFunctionValues;
+
+	for (int i = 0; i < numberOfSteps; ++i) {
+		auto next = current->chooseMove();
+		current->move(next.first, next.second);
+
+		path.push_back(next);
+		objectiveFunctionValues.push_back(std::make_pair(i, current->solutionOverLoad));
+	}
+
+	int chosen = 0;
+	for (auto tmp : objectiveFunctionValues) {
+		if (objectiveFunctionValues[chosen].second > tmp.second) {
+			chosen = tmp.first;
+		}
+	}
+
+	std::cout << "LK min step: " << chosen << " WIN: " << objectiveFunctionValues[chosen].second << std::endl;
+	if (solutionOverLoad > objectiveFunctionValues[chosen].second) {
+		for (int i = 0; i <= chosen; ++i) {
+			//std::cout << "move: " << path[i].first << ";" << path[i].second << std::endl;
+			move(path[i].first, path[i].second);
+		}
+	}
+	
+}
+
 
 void Solution::move(int disk, int server) {
 	solution[disk] = server;
@@ -303,13 +423,84 @@ void Solution::swap(int d1, int d2) {
 	this->calculateEjectionAndInsertionExpenses();
 	this->calculateOverLoad();
 }
+//void Solution::move(int disk, int server) {
+//	int serverWas = solution[disk];
+//
+//	solution[disk] = server;
+//
+//	for (int c = 0; c < condition->getNumberOfCharacteristics(); ++c) {
+//		currentEjectionCost[serverWas][c] += condition->getEjectionCost(disk, serverWas, c) - condition->getInsertionCost(disk, server, c);
+//		currentInsertionCost[server][c] += condition->getInsertionCost(disk, server, c) - condition->getEjectionCost(disk, serverWas, c);
+//	}
+//
+//	for (int c = 0; c < condition->getNumberOfCharacteristics(); ++c) {
+//		for (int t = 0; t < condition->getTimePeriod(); ++t) {
+//			serversLoads[serverWas][c][t] -= condition->getDiskLoad(disk, c, t);
+//			serversLoads[server][c][t] += condition->getDiskLoad(disk, c, t);
+//		}
+//	}
+//
+//	LoadType serverOverLoadWas[2];
+//	serverOverLoadWas[0] = serversOverLoads[serverWas];
+//	serversOverLoads[serverWas] = 0;
+//	serverOverLoadWas[1] = serversOverLoads[server];
+//	serversOverLoads[server] = 0;
+//
+//	for (int c = 0; c < condition->getNumberOfCharacteristics(); ++c) {
+//		for (int t = 0; t < condition->getTimePeriod(); ++t) {
+//			LoadType value = serversLoads[serverWas][c][t] - condition->getServerLoadLimits(serverWas, c);
+//			serversOverLoads[serverWas] += value > 0 ? value : 0;
+//			value = serversLoads[server][c][t] - condition->getServerLoadLimits(server, c);
+//			serversOverLoads[server] += value > 0 ? value : 0;
+//		}
+//	}
+//	solutionOverLoad += -serverOverLoadWas[0] - serverOverLoadWas[1] + serversOverLoads[serverWas] + serversOverLoads[server];
+//	// only changed 2 servers;
+//	//this->calculateEjectionAndInsertionExpenses();
+//	//this->calculateOverLoad();
+//}
+//
+//void Solution::swap(int d1, int d2) {
+//	std::swap(solution[d1], solution[d2]);
+//	//this->calculateEjectionAndInsertionExpenses();
+//	//this->calculateOverLoad();
+//
+//	for (int c = 0; c < condition->getNumberOfCharacteristics(); ++c) {
+//		currentEjectionCost[solution[d1]][c] += condition->getEjectionCost(d2, solution[d1], c) - condition->getInsertionCost(d1, solution[d1], c);
+//		currentInsertionCost[solution[d1]][c] += condition->getInsertionCost(d1, solution[d1], c) - condition->getEjectionCost(d2, solution[d1], c);
+//
+//		currentEjectionCost[solution[d2]][c] += condition->getEjectionCost(d1, solution[d2], c) - condition->getInsertionCost(d2, solution[d2], c);
+//		currentInsertionCost[solution[d2]][c] += condition->getInsertionCost(d2, solution[d2], c) - condition->getEjectionCost(d1, solution[d2], c);
+//	}
+//
+//	for (int c = 0; c < condition->getNumberOfCharacteristics(); ++c) {
+//		for (int t = 0; t < condition->getTimePeriod(); ++t) {
+//			serversLoads[solution[d2]][c][t] -= condition->getDiskLoad(d1, c, t);
+//			serversLoads[solution[d2]][c][t] += condition->getDiskLoad(d2, c, t);
+//
+//			serversLoads[solution[d1]][c][t] -= condition->getDiskLoad(d2, c, t);
+//			serversLoads[solution[d1]][c][t] += condition->getDiskLoad(d1, c, t);
+//		}
+//	}
+//
+//	LoadType serverOverLoadWas[2];
+//	serverOverLoadWas[0] = serversOverLoads[solution[d1]];
+//	serversOverLoads[solution[d1]] = 0;
+//	serverOverLoadWas[1] = serversOverLoads[solution[d2]];
+//	serversOverLoads[solution[d2]] = 0;
+//
+//	for (int c = 0; c < condition->getNumberOfCharacteristics(); ++c) {
+//		for (int t = 0; t < condition->getTimePeriod(); ++t) {
+//			LoadType value = serversLoads[solution[d1]][c][t] - condition->getServerLoadLimits(solution[d1], c);
+//			serversOverLoads[solution[d1]] += value > 0 ? value : 0;
+//			value = serversLoads[solution[d2]][c][t] - condition->getServerLoadLimits(solution[d2], c);
+//			serversOverLoads[solution[d2]] += value > 0 ? value : 0;
+//		}
+//	}
+//	solutionOverLoad += -serverOverLoadWas[0] - serverOverLoadWas[1] + serversOverLoads[solution[d1]] + serversOverLoads[solution[d2]];
+//}
 
-struct Move {
-	int d;
-	int s;
 
-	Move(int _d, int _s ) : d(_d), s(_s) {}
-};
 
 
 void Solution::SwapOptimization() {
@@ -425,6 +616,52 @@ void Solution::MoveSwapOptimization() {
 				if (tmp.second > bestSwap.second) {
 					bestSwap = tmp;
 				}
+			}
+		}
+	}
+
+	if (bestMove.second > bestSwap.second) {
+		move(bestMove.first.d, bestMove.first.s);
+	}
+	else {
+		swap(bestSwap.first.first, bestSwap.first.second);
+	}
+}
+
+
+void Solution::RandomizedMoveSwapOptimization() {
+	std::pair<Move, LoadType> bestMove(Move(1, solution[1]), 0);
+
+	for (int i = 0; i < condition->getNumberOfDisks()/10; i++) {
+		std::uniform_int_distribution<int> distServers(0, condition->getNumberOfServers() - 1);
+		std::uniform_int_distribution<int> distDisks(0, condition->getNumberOfDisks() - 1);
+
+		int s = distServers(GlobalRNG::getInstance().getEngine());
+		int d = distDisks(GlobalRNG::getInstance().getEngine());
+
+			if (s != solution[d]) {
+				std::pair<Move, LoadType> tmp(Move(d, s), tryMove(d, s));
+
+				if (tmp.second > bestMove.second) {
+					bestMove = tmp;
+				}
+			}
+		}
+
+	std::pair<std::pair<int, int>, LoadType> bestSwap(std::pair<int, int>(1, 1), 0);
+
+	for (int i = 0; i < condition->getNumberOfDisks() / 10; i++) {
+		std::uniform_int_distribution<int> distServers(0, condition->getNumberOfServers() - 1);
+		std::uniform_int_distribution<int> distDisks(0, condition->getNumberOfDisks() - 1);
+
+		int d1 = distServers(GlobalRNG::getInstance().getEngine());
+		int d2 = distDisks(GlobalRNG::getInstance().getEngine());
+
+		if (solution[d1] != solution[d2]) {
+			std::pair<std::pair<int, int>, LoadType> tmp(std::pair<int, int>(d1, d2), trySwap(d1, d2));
+
+			if (tmp.second > bestSwap.second) {
+				bestSwap = tmp;
 			}
 		}
 	}
@@ -912,4 +1149,8 @@ LoadType Solution::tryInsertDiskToServer(int disk, int server) {
 
 	}
 	return resultServerOverLoad;
+}
+
+std::vector<int> Solution::getSolutionRepresentation() const {
+	return solution;
 }
