@@ -46,7 +46,7 @@ namespace strategies {
 			mPopulation.insert(mPopulation.end(), other->mPopulation.begin(), other->mPopulation.end());
 
 			mPopulation.erase(std::unique(mPopulation.begin(), mPopulation.end()), mPopulation.end());
-			std::cout << mPopulation.size() << std::endl;
+			//std::cout << mPopulation.size() << std::endl;
 		}
 
 		void shrink() {

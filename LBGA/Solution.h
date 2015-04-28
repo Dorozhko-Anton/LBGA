@@ -106,6 +106,7 @@ public:
 
 
 	void MoveOptimization();
+	void RandomizedMoveOptimization();
 	void MoveSwapOptimization();
 
 	/**

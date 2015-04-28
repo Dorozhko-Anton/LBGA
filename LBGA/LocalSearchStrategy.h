@@ -52,6 +52,14 @@ public:
 };
 
 template <class T>
+class RandomizedMoveStrategy : public LocalSearchStrategy<T> {
+public:
+	void apply(T* solution) {
+		solution->RandomizedMoveOptimization();
+	};
+};
+
+template <class T>
 class MoveSwapStrategy : public LocalSearchStrategy<T> {
 public:
 	void apply(T* solution) {

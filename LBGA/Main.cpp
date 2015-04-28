@@ -283,6 +283,124 @@ void testGAwithSwap() {
 		std::cout << "Result is not feasible" << std::endl;
 	}
 }
+
+void testGAwithRandomMove() {
+	{
+		//std::ifstream dataFile("data_700_150.txt");
+		std::ifstream dataFile("inst1.txt");
+
+		Condition cond(dataFile);
+
+		BreedingStrategy<Solution> bstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
+		IterationNumberStopStrategy<Solution> sstrategy(RECOMMENDED_ITERATION_NUMBER);
+		TimeStopStrategy<Solution> tsstrategy(RECOMMENDED_TIME);
+
+		GeneticAlgorithm
+			<Solution,
+			strategies::Population,
+			BreedingStrategy,
+			//RandomizedSwapStrategy,
+			RandomizedMoveStrategy,
+			//IterationNumberStopStrategy,
+			TimeStopStrategy,
+			SimpleCrossoverStrategy
+			>
+			ga(bstrategy, tsstrategy);
+
+
+		ga.setLog("output.txt");
+
+		std::clock_t start, finish;
+		start = std::clock();
+		ga.start();
+		finish = std::clock();
+
+		Solution * res = &*ga.getResult();
+		res->calculateOverLoad();
+
+		if (ga.getResult()->isFeasible()) {
+			std::cout << "OK" << std::endl;
+		}
+		else {
+			std::cout << "BAD" << std::endl;
+		}
+		std::cout << ga.getResult()->getOverLoad() << std::endl;
+
+		std::cout << "time: " << (finish - start) / CLOCKS_PER_SEC << std::endl;
+
+
+		if (ga.getResult()->isFeasible()) {
+
+			std::stringstream outputStringStream;
+			outputStringStream << ga.getResult()->getOverLoad() << "randommove.txt";
+			std::cout << "Writing result to " << outputStringStream.str() << std::endl;
+
+			std::ofstream result(outputStringStream.str());
+			result << *ga.getResult() << std::endl;
+
+		}
+		else {
+			std::cout << "Result is not feasible" << std::endl;
+		}
+	}
+}
+void testGAwithRandomSwap() {
+	//std::ifstream dataFile("data_700_150.txt");
+	std::ifstream dataFile("inst1.txt");
+
+	Condition cond(dataFile);
+
+
+	BreedingStrategy<Solution> bstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
+	IterationNumberStopStrategy<Solution> sstrategy(RECOMMENDED_ITERATION_NUMBER);
+	TimeStopStrategy<Solution> tsstrategy(RECOMMENDED_TIME);
+
+	GeneticAlgorithm
+		<Solution,
+		strategies::Population,
+		BreedingStrategy,
+		//RandomizedSwapStrategy,
+		RandomizedSwapStrategy,
+		//IterationNumberStopStrategy,
+		TimeStopStrategy,
+		SimpleCrossoverStrategy
+		>
+		ga(bstrategy, tsstrategy);
+
+	ga.setLog("output.txt");
+
+	std::clock_t start, finish;
+	start = std::clock();
+	ga.start();
+	finish = std::clock();
+
+	Solution * res = &*ga.getResult();
+	res->calculateOverLoad();
+
+	if (ga.getResult()->isFeasible()) {
+		std::cout << "OK" << std::endl;
+	}
+	else {
+		std::cout << "BAD" << std::endl;
+	}
+	std::cout << ga.getResult()->getOverLoad() << std::endl;
+	std::cout << "time: " << (finish - start) / CLOCKS_PER_SEC << std::endl;
+
+
+	if (ga.getResult()->isFeasible()) {
+
+		std::stringstream outputStringStream;
+		outputStringStream << ga.getResult()->getOverLoad() << "randomswap.txt";
+		std::cout << "Writing result to " << outputStringStream.str() << std::endl;
+
+		std::ofstream result(outputStringStream.str());
+		result << *ga.getResult() << std::endl;
+
+	}
+	else {
+		std::cout << "Result is not feasible" << std::endl;
+	}
+}
 //
 //
 void testGAWithViolations() {
@@ -388,6 +506,7 @@ void testGAwithClasses1();
 void testGAwithClasses2();
 void testGAwithClasses3();
 void testAll();
+void testRandomizedVsFullSearch();
 
 void main() 
 {
@@ -399,7 +518,8 @@ void main()
 	//checkSolution("inst1.txt", "champ.txt");
 	//_CrtMemDumpAllObjectsSince(&_ms)testGAwithLK();
 
-	testAll();
+	//testAll();
+	testRandomizedVsFullSearch();
 }
 void testGAwithLK() {
 	//std::ifstream dataFile("data_700_150.txt");
@@ -449,7 +569,7 @@ void testGAwithLK() {
 	if (ga.getResult()->isFeasible()) {
 
 		std::stringstream outputStringStream;
-		outputStringStream << ga.getResult()->getOverLoad() << "RANDunion.txt";
+		outputStringStream << ga.getResult()->getOverLoad() << "LK.txt";
 		std::cout << "Writing result to " << outputStringStream.str() << std::endl;
 
 		std::ofstream result(outputStringStream.str());
@@ -570,6 +690,61 @@ void ScalingTest2() {
 	}
 }
 
+void ScalingTest3() {
+	std::ifstream dataFile("filesMigrationProblem10000.txt");
+
+	ConditionWithHighLoad cond(dataFile);
+
+	BreedingStrategy<Solution> bstrategy(&cond, RECOMMENDED_POPULATION_SIZE);
+	IterationNumberStopStrategy<Solution> sstrategy(RECOMMENDED_ITERATION_NUMBER);
+	TimeStopStrategy<Solution> tsstrategy(RECOMMENDED_TIME);
+
+	GeneticAlgorithm
+		<Solution,
+		strategies::Population,
+		BreedingStrategy,
+		//RandomizedSwapStrategy,
+		RandomizedMoveSwapStrategy,
+		//LinKernighanStrategy,
+		//IterationNumberStopStrategy,
+		TimeStopStrategy,
+		SimpleCrossoverStrategy
+		>
+		ga(bstrategy, tsstrategy);
+
+	std::clock_t start, finish;
+	start = std::clock();
+	ga.start();
+	finish = std::clock();
+
+	Solution * res = &*ga.getResult();
+	res->calculateOverLoad();
+
+	if (ga.getResult()->isFeasible()) {
+		std::cout << "OK" << std::endl;
+	}
+	else {
+		std::cout << "BAD" << std::endl;
+	}
+	std::cout << ga.getResult()->getOverLoad() << std::endl;
+	std::cout << "time: " << (finish - start) / CLOCKS_PER_SEC << std::endl;
+
+
+	if (ga.getResult()->isFeasible()) {
+
+		std::stringstream outputStringStream;
+		outputStringStream << ga.getResult()->getOverLoad() << "_10000.txt";
+		std::cout << "Writing result to " << outputStringStream.str() << std::endl;
+
+		std::ofstream result(outputStringStream.str());
+		result << *ga.getResult() << std::endl;
+
+	}
+	else {
+		std::cout << "Result is not feasible" << std::endl;
+	}
+}
+
 void testAll() {
 
 	std::ofstream out("output-ALL.txt");
@@ -579,32 +754,35 @@ void testAll() {
 	//testGAwithMove();
 	//testGAwithSwap();
 	//testGA();
-	//testGAwithRandomSwapMove();
-	//testGAwithLK();
+	testGAwithRandomSwapMove();
+	testGAwithLK();
+	
 	//testGAWithViolations();
 
-	testGAwithClasses1();
-	testGAwithClasses2();
-	testGAwithClasses3();
+	//testGAwithClasses1();
+	//testGAwithClasses2();
+	//testGAwithClasses3();
 
-	//ScalingTest();
-	//ScalingTest2();
+	ScalingTest();
+	ScalingTest3();
+	ScalingTest2();
 
 	RECOMMENDED_TIME *= 2;
 
 	//testGAwithMove();
 	//testGAwithSwap();
 	//testGA();
-	//testGAwithRandomSwapMove();
-	//testGAwithLK();
+	testGAwithRandomSwapMove();
+	testGAwithLK();
 	////testGAWithViolations();
 
-	testGAwithClasses1();
+	/*testGAwithClasses1();
 	testGAwithClasses2();
-	testGAwithClasses3();
+	testGAwithClasses3();*/
 
-	//ScalingTest();
-	//ScalingTest2();
+	ScalingTest();
+	ScalingTest3();
+	ScalingTest2();
 
 	std::cout.rdbuf(coutbuf); //reset to standard output again
 }
@@ -812,4 +990,12 @@ void testGAwithClasses3() {
 	else {
 		std::cout << "Result is not feasible" << std::endl;
 	}
+}
+
+
+void testRandomizedVsFullSearch() {
+	testGAwithMove();
+	testGAwithRandomMove();
+	testGAwithSwap();
+	testGAwithRandomSwap();
 }

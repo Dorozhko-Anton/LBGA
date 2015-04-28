@@ -412,93 +412,93 @@ void Solution::LinKernighan(int numberOfSteps) {
 }
 
 
-void Solution::move(int disk, int server) {
-	solution[disk] = server;
-	this->calculateEjectionAndInsertionExpenses();
-	this->calculateOverLoad();
-}
-
-void Solution::swap(int d1, int d2) {
-	std::swap(solution[d1], solution[d2]);
-	this->calculateEjectionAndInsertionExpenses();
-	this->calculateOverLoad();
-}
 //void Solution::move(int disk, int server) {
-//	int serverWas = solution[disk];
-//
 //	solution[disk] = server;
-//
-//	for (int c = 0; c < condition->getNumberOfCharacteristics(); ++c) {
-//		currentEjectionCost[serverWas][c] += condition->getEjectionCost(disk, serverWas, c) - condition->getInsertionCost(disk, server, c);
-//		currentInsertionCost[server][c] += condition->getInsertionCost(disk, server, c) - condition->getEjectionCost(disk, serverWas, c);
-//	}
-//
-//	for (int c = 0; c < condition->getNumberOfCharacteristics(); ++c) {
-//		for (int t = 0; t < condition->getTimePeriod(); ++t) {
-//			serversLoads[serverWas][c][t] -= condition->getDiskLoad(disk, c, t);
-//			serversLoads[server][c][t] += condition->getDiskLoad(disk, c, t);
-//		}
-//	}
-//
-//	LoadType serverOverLoadWas[2];
-//	serverOverLoadWas[0] = serversOverLoads[serverWas];
-//	serversOverLoads[serverWas] = 0;
-//	serverOverLoadWas[1] = serversOverLoads[server];
-//	serversOverLoads[server] = 0;
-//
-//	for (int c = 0; c < condition->getNumberOfCharacteristics(); ++c) {
-//		for (int t = 0; t < condition->getTimePeriod(); ++t) {
-//			LoadType value = serversLoads[serverWas][c][t] - condition->getServerLoadLimits(serverWas, c);
-//			serversOverLoads[serverWas] += value > 0 ? value : 0;
-//			value = serversLoads[server][c][t] - condition->getServerLoadLimits(server, c);
-//			serversOverLoads[server] += value > 0 ? value : 0;
-//		}
-//	}
-//	solutionOverLoad += -serverOverLoadWas[0] - serverOverLoadWas[1] + serversOverLoads[serverWas] + serversOverLoads[server];
-//	// only changed 2 servers;
-//	//this->calculateEjectionAndInsertionExpenses();
-//	//this->calculateOverLoad();
+//	this->calculateEjectionAndInsertionExpenses();
+//	this->calculateOverLoad();
 //}
 //
 //void Solution::swap(int d1, int d2) {
 //	std::swap(solution[d1], solution[d2]);
-//	//this->calculateEjectionAndInsertionExpenses();
-//	//this->calculateOverLoad();
-//
-//	for (int c = 0; c < condition->getNumberOfCharacteristics(); ++c) {
-//		currentEjectionCost[solution[d1]][c] += condition->getEjectionCost(d2, solution[d1], c) - condition->getInsertionCost(d1, solution[d1], c);
-//		currentInsertionCost[solution[d1]][c] += condition->getInsertionCost(d1, solution[d1], c) - condition->getEjectionCost(d2, solution[d1], c);
-//
-//		currentEjectionCost[solution[d2]][c] += condition->getEjectionCost(d1, solution[d2], c) - condition->getInsertionCost(d2, solution[d2], c);
-//		currentInsertionCost[solution[d2]][c] += condition->getInsertionCost(d2, solution[d2], c) - condition->getEjectionCost(d1, solution[d2], c);
-//	}
-//
-//	for (int c = 0; c < condition->getNumberOfCharacteristics(); ++c) {
-//		for (int t = 0; t < condition->getTimePeriod(); ++t) {
-//			serversLoads[solution[d2]][c][t] -= condition->getDiskLoad(d1, c, t);
-//			serversLoads[solution[d2]][c][t] += condition->getDiskLoad(d2, c, t);
-//
-//			serversLoads[solution[d1]][c][t] -= condition->getDiskLoad(d2, c, t);
-//			serversLoads[solution[d1]][c][t] += condition->getDiskLoad(d1, c, t);
-//		}
-//	}
-//
-//	LoadType serverOverLoadWas[2];
-//	serverOverLoadWas[0] = serversOverLoads[solution[d1]];
-//	serversOverLoads[solution[d1]] = 0;
-//	serverOverLoadWas[1] = serversOverLoads[solution[d2]];
-//	serversOverLoads[solution[d2]] = 0;
-//
-//	for (int c = 0; c < condition->getNumberOfCharacteristics(); ++c) {
-//		for (int t = 0; t < condition->getTimePeriod(); ++t) {
-//			LoadType value = serversLoads[solution[d1]][c][t] - condition->getServerLoadLimits(solution[d1], c);
-//			serversOverLoads[solution[d1]] += value > 0 ? value : 0;
-//			value = serversLoads[solution[d2]][c][t] - condition->getServerLoadLimits(solution[d2], c);
-//			serversOverLoads[solution[d2]] += value > 0 ? value : 0;
-//		}
-//	}
-//	solutionOverLoad += -serverOverLoadWas[0] - serverOverLoadWas[1] + serversOverLoads[solution[d1]] + serversOverLoads[solution[d2]];
+//	this->calculateEjectionAndInsertionExpenses();
+//	this->calculateOverLoad();
 //}
+void Solution::move(int disk, int server) {
+	int serverWas = solution[disk];
+
+	solution[disk] = server;
+
+	for (int c = 0; c < condition->getNumberOfCharacteristics(); ++c) {
+		currentEjectionCost[serverWas][c] += condition->getEjectionCost(disk, serverWas, c) - condition->getInsertionCost(disk, server, c);
+		currentInsertionCost[server][c] += condition->getInsertionCost(disk, server, c) - condition->getEjectionCost(disk, serverWas, c);
+	}
+
+	for (int c = 0; c < condition->getNumberOfCharacteristics(); ++c) {
+		for (int t = 0; t < condition->getTimePeriod(); ++t) {
+			serversLoads[serverWas][c][t] -= condition->getDiskLoad(disk, c, t);
+			serversLoads[server][c][t] += condition->getDiskLoad(disk, c, t);
+		}
+	}
+
+	LoadType serverOverLoadWas[2];
+	serverOverLoadWas[0] = serversOverLoads[serverWas];
+	serversOverLoads[serverWas] = 0;
+	serverOverLoadWas[1] = serversOverLoads[server];
+	serversOverLoads[server] = 0;
+
+	for (int c = 0; c < condition->getNumberOfCharacteristics(); ++c) {
+		for (int t = 0; t < condition->getTimePeriod(); ++t) {
+			LoadType value = serversLoads[serverWas][c][t] - condition->getServerLoadLimits(serverWas, c);
+			serversOverLoads[serverWas] += value > 0 ? value : 0;
+			value = serversLoads[server][c][t] - condition->getServerLoadLimits(server, c);
+			serversOverLoads[server] += value > 0 ? value : 0;
+		}
+	}
+	solutionOverLoad += -serverOverLoadWas[0] - serverOverLoadWas[1] + serversOverLoads[serverWas] + serversOverLoads[server];
+	// only changed 2 servers;
+	//this->calculateEjectionAndInsertionExpenses();
+	//this->calculateOverLoad();
+}
+
+void Solution::swap(int d1, int d2) {
+	std::swap(solution[d1], solution[d2]);
+	//this->calculateEjectionAndInsertionExpenses();
+	//this->calculateOverLoad();
+
+	for (int c = 0; c < condition->getNumberOfCharacteristics(); ++c) {
+		currentEjectionCost[solution[d1]][c] += condition->getEjectionCost(d2, solution[d1], c) - condition->getInsertionCost(d1, solution[d1], c);
+		currentInsertionCost[solution[d1]][c] += condition->getInsertionCost(d1, solution[d1], c) - condition->getEjectionCost(d2, solution[d1], c);
+
+		currentEjectionCost[solution[d2]][c] += condition->getEjectionCost(d1, solution[d2], c) - condition->getInsertionCost(d2, solution[d2], c);
+		currentInsertionCost[solution[d2]][c] += condition->getInsertionCost(d2, solution[d2], c) - condition->getEjectionCost(d1, solution[d2], c);
+	}
+
+	for (int c = 0; c < condition->getNumberOfCharacteristics(); ++c) {
+		for (int t = 0; t < condition->getTimePeriod(); ++t) {
+			serversLoads[solution[d2]][c][t] -= condition->getDiskLoad(d1, c, t);
+			serversLoads[solution[d2]][c][t] += condition->getDiskLoad(d2, c, t);
+
+			serversLoads[solution[d1]][c][t] -= condition->getDiskLoad(d2, c, t);
+			serversLoads[solution[d1]][c][t] += condition->getDiskLoad(d1, c, t);
+		}
+	}
+
+	LoadType serverOverLoadWas[2];
+	serverOverLoadWas[0] = serversOverLoads[solution[d1]];
+	serversOverLoads[solution[d1]] = 0;
+	serverOverLoadWas[1] = serversOverLoads[solution[d2]];
+	serversOverLoads[solution[d2]] = 0;
+
+	for (int c = 0; c < condition->getNumberOfCharacteristics(); ++c) {
+		for (int t = 0; t < condition->getTimePeriod(); ++t) {
+			LoadType value = serversLoads[solution[d1]][c][t] - condition->getServerLoadLimits(solution[d1], c);
+			serversOverLoads[solution[d1]] += value > 0 ? value : 0;
+			value = serversLoads[solution[d2]][c][t] - condition->getServerLoadLimits(solution[d2], c);
+			serversOverLoads[solution[d2]] += value > 0 ? value : 0;
+		}
+	}
+	solutionOverLoad += -serverOverLoadWas[0] - serverOverLoadWas[1] + serversOverLoads[solution[d1]] + serversOverLoads[solution[d2]];
+}
 
 
 
@@ -584,6 +584,28 @@ void Solution::MoveOptimization() {
 				if (tmp.second > bestMove.second) {
 					bestMove = tmp;
 				}
+			}
+		}
+	}
+
+	move(bestMove.first.d, bestMove.first.s);
+}
+
+void Solution::RandomizedMoveOptimization() {
+	std::pair<Move, LoadType> bestMove(Move(1, solution[1]), 0);
+
+	for (int i = 0; i < condition->getNumberOfDisks() / 10; i++) {
+		std::uniform_int_distribution<int> distServers(0, condition->getNumberOfServers() - 1);
+		std::uniform_int_distribution<int> distDisks(0, condition->getNumberOfDisks() - 1);
+
+		int s = distServers(GlobalRNG::getInstance().getEngine());
+		int d = distDisks(GlobalRNG::getInstance().getEngine());
+
+		if (s != solution[d]) {
+			std::pair<Move, LoadType> tmp(Move(d, s), tryMove(d, s));
+
+			if (tmp.second > bestMove.second) {
+				bestMove = tmp;
 			}
 		}
 	}

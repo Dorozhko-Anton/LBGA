@@ -79,6 +79,14 @@ Condition::Condition(std::ifstream &inputFile) {
 	}
 	
 	initialSolution = new Solution(this, inputFile, true);
+
+
+	std::cout << "D = " << numberOfDisks << std::endl;
+	std::cout << "S = " << numberOfServers << std::endl;
+	std::cout << "R = " << numberOfCharacteristics << std::endl;
+	std::cout << "T = " << timePeriod << std::endl;
+	std::cout << "overload = " << initialSolution->getOverLoad() << std::endl;
+	std::cout << "size = " << sizeof(*this) << std::endl;
 }
 
 Condition::~Condition() {
